@@ -1,0 +1,30 @@
+# Variables de entorno — NUNCA subir a Git
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+venv/
+.venv/
+env/
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Archivos generados por la app
+storage/
+
+# IDEs
+.vscode/
+.idea/
+*.ui.bak
+
+# Empaquetado
+dist/
+build/
+*.spec

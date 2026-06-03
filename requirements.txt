@@ -1,0 +1,25 @@
+# Interfaz de usuario
+PySide6==6.7.2
+
+# Base de datos
+SQLAlchemy==2.0.35
+pymysql==1.1.1
+alembic==1.13.2
+cryptography==43.0.1      # requerido por pymysql para SSL
+
+# Seguridad
+bcrypt==4.2.0
+
+# Manejo de Excel
+openpyxl==3.1.5
+
+# Generación de PDF (Formato N°03 bienes)
+reportlab==4.2.5
+
+# Variables de entorno
+python-dotenv==1.0.1
+
+# Testing
+pytest==8.3.3
+pytest-qt==4.4.0
+coverage==7.6.1

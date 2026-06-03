@@ -1,0 +1,297 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>HistorialDialog</class>
+ <widget class="QDialog" name="HistorialDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>780</width>
+    <height>480</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>Historial del Estudiante</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="leftMargin">
+    <number>24</number>
+   </property>
+   <property name="topMargin">
+    <number>20</number>
+   </property>
+   <property name="rightMargin">
+    <number>24</number>
+   </property>
+   <property name="bottomMargin">
+    <number>20</number>
+   </property>
+   <property name="spacing">
+    <number>12</number>
+   </property>
+
+   <!-- Nombre -->
+   <item>
+    <widget class="QLabel" name="lbl_nombre_completo">
+     <property name="text">
+      <string>Nombre Completo del Estudiante</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+font-size: 18px;
+font-weight: 600;
+color: #1a1a18;
+      </string>
+     </property>
+    </widget>
+   </item>
+
+   <!-- Información -->
+   <item>
+    <widget class="QLabel" name="lbl_info_estudiante">
+     <property name="text">
+      <string>Código · Carrera · Ciclo · Estado</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+font-size: 13px;
+color: #73726c;
+      </string>
+     </property>
+    </widget>
+   </item>
+
+   <!-- Tarjeta estadísticas -->
+   <item>
+    <widget class="QFrame" name="frame_stats">
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+QFrame {
+    background-color: #f8f7f4;
+    border: 1px solid #e1dfd8;
+    border-radius: 10px;
+}
+QLabel {
+    border: none;
+}
+      </string>
+     </property>
+
+     <layout class="QHBoxLayout" name="horizontalLayout_stats">
+      <property name="leftMargin">
+       <number>14</number>
+      </property>
+      <property name="topMargin">
+       <number>10</number>
+      </property>
+      <property name="rightMargin">
+       <number>14</number>
+      </property>
+      <property name="bottomMargin">
+       <number>10</number>
+      </property>
+      <property name="spacing">
+       <number>32</number>
+      </property>
+
+      <!-- Asistencia -->
+      <item>
+       <layout class="QVBoxLayout" name="layout_asistencia">
+        <item>
+         <widget class="QLabel" name="lbl_stat_asistencia">
+          <property name="text">
+           <string>—%</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+font-size: 22px;
+font-weight: 600;
+color: #1D9E75;
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_asistencia">
+          <property name="text">
+           <string>Asistencia global</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+
+      <!-- Talleres -->
+      <item>
+       <layout class="QVBoxLayout" name="layout_talleres">
+        <item>
+         <widget class="QLabel" name="lbl_stat_talleres">
+          <property name="text">
+           <string>—</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+font-size: 22px;
+font-weight: 600;
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_talleres">
+          <property name="text">
+           <string>Talleres cursados</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+
+      <!-- Sesiones -->
+      <item>
+       <layout class="QVBoxLayout" name="layout_sesiones">
+        <item>
+         <widget class="QLabel" name="lbl_stat_sesiones">
+          <property name="text">
+           <string>—</string>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">
+font-size: 22px;
+font-weight: 600;
+           </string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_sesiones">
+          <property name="text">
+           <string>Sesiones totales</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+
+     </layout>
+    </widget>
+   </item>
+
+   <!-- Tabla -->
+   <item>
+    <widget class="QTableWidget" name="tbl_historial">
+     <property name="alternatingRowColors">
+      <bool>true</bool>
+     </property>
+     <property name="showGrid">
+      <bool>false</bool>
+     </property>
+
+     <column>
+      <property name="text">
+       <string>Ciclo</string>
+      </property>
+     </column>
+
+     <column>
+      <property name="text">
+       <string>Taller</string>
+      </property>
+     </column>
+
+     <column>
+      <property name="text">
+       <string>Docente</string>
+      </property>
+     </column>
+
+     <column>
+      <property name="text">
+       <string>Asistidas/Total</string>
+      </property>
+     </column>
+
+     <column>
+      <property name="text">
+       <string>% Asistencia</string>
+      </property>
+     </column>
+
+     <column>
+      <property name="text">
+       <string>Aptitud</string>
+      </property>
+     </column>
+    </widget>
+   </item>
+
+   <!-- Botón cerrar -->
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_footer">
+     <item>
+      <spacer name="horizontalSpacer_footer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+
+     <item>
+      <widget class="QPushButton" name="btn_cerrar">
+       <property name="minimumSize">
+        <size>
+         <width>100</width>
+         <height>36</height>
+        </size>
+       </property>
+       <property name="text">
+        <string>Cerrar</string>
+       </property>
+       <property name="styleSheet">
+        <string notr="true">
+QPushButton {
+    background-color: #534AB7;
+    color: white;
+    border: none;
+    border-radius: 7px;
+    font-size: 13px;
+    font-weight: 500;
+}
+QPushButton:hover {
+    background-color: #4339A0;
+}
+        </string>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

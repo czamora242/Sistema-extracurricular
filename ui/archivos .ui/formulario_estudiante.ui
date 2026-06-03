@@ -1,0 +1,432 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>FormularioEstudianteDialog</class>
+
+ <widget class="QDialog" name="FormularioEstudianteDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>640</width>
+    <height>480</height>
+   </rect>
+  </property>
+
+  <property name="windowTitle">
+   <string>Formulario Estudiante</string>
+  </property>
+
+  <layout class="QVBoxLayout" name="verticalLayoutPrincipal">
+
+   <property name="leftMargin">
+    <number>24</number>
+   </property>
+   <property name="topMargin">
+    <number>20</number>
+   </property>
+   <property name="rightMargin">
+    <number>24</number>
+   </property>
+   <property name="bottomMargin">
+    <number>20</number>
+   </property>
+
+   <!-- TÍTULO -->
+   <item>
+    <widget class="QLabel" name="lbl_titulo_dialogo">
+     <property name="text">
+      <string>Nuevo estudiante</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+font-size:18px;
+font-weight:600;
+color:#1a1a18;
+      </string>
+     </property>
+    </widget>
+   </item>
+
+   <!-- SUBTÍTULO -->
+   <item>
+    <widget class="QLabel" name="lbl_subtitulo_dialogo">
+     <property name="text">
+      <string>Completa los campos obligatorios (*) y guarda.</string>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">
+font-size:13px;
+color:#73726c;
+      </string>
+     </property>
+    </widget>
+   </item>
+
+   <item>
+    <spacer name="verticalSpacer1">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>10</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+
+   <!-- CUERPO -->
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayoutCuerpo">
+
+     <!-- PANEL FOTO -->
+     <item>
+      <widget class="QFrame" name="frame_foto">
+       <property name="minimumSize">
+        <size>
+         <width>130</width>
+         <height>0</height>
+        </size>
+       </property>
+
+       <layout class="QVBoxLayout" name="verticalLayoutFoto">
+
+        <item>
+         <widget class="QLabel" name="lbl_foto">
+          <property name="minimumSize">
+           <size>
+            <width>120</width>
+            <height>130</height>
+           </size>
+          </property>
+
+          <property name="maximumSize">
+           <size>
+            <width>120</width>
+            <height>130</height>
+           </size>
+          </property>
+
+          <property name="text">
+           <string>👤</string>
+          </property>
+
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+
+          <property name="styleSheet">
+           <string notr="true">
+background:#e8e6e0;
+border-radius:8px;
+font-size:36px;
+color:#a09e96;
+           </string>
+          </property>
+         </widget>
+        </item>
+
+        <item>
+         <widget class="QPushButton" name="btn_foto">
+          <property name="text">
+           <string>📷 Cambiar foto</string>
+          </property>
+
+          <property name="minimumHeight">
+           <number>30</number>
+          </property>
+         </widget>
+        </item>
+
+       </layout>
+      </widget>
+     </item>
+
+     <!-- CAMPOS -->
+     <item>
+      <layout class="QGridLayout" name="gridLayoutCampos">
+
+       <!-- DNI -->
+       <item row="0" column="0">
+        <widget class="QLabel" name="label_dni">
+         <property name="text">
+          <string>DNI *</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- CÓDIGO -->
+       <item row="0" column="1">
+        <widget class="QLabel" name="label_codigo">
+         <property name="text">
+          <string>Código *</string>
+         </property>
+        </widget>
+       </item>
+
+       <item row="1" column="0">
+        <widget class="QLineEdit" name="inp_dni">
+         <property name="placeholderText">
+          <string>72345678</string>
+         </property>
+         <property name="maxLength">
+          <number>8</number>
+         </property>
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+        </widget>
+       </item>
+
+       <item row="1" column="1">
+        <widget class="QLineEdit" name="inp_codigo">
+         <property name="placeholderText">
+          <string>2021100123</string>
+         </property>
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+        </widget>
+       </item>
+
+       <!-- APELLIDOS -->
+       <item row="2" column="0">
+        <widget class="QLabel" name="label_apellidos">
+         <property name="text">
+          <string>Apellidos *</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- NOMBRES -->
+       <item row="2" column="1">
+        <widget class="QLabel" name="label_nombres">
+         <property name="text">
+          <string>Nombres *</string>
+         </property>
+        </widget>
+       </item>
+
+       <item row="3" column="0">
+        <widget class="QLineEdit" name="inp_apellidos">
+         <property name="placeholderText">
+          <string>Pérez García</string>
+         </property>
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+        </widget>
+       </item>
+
+       <item row="3" column="1">
+        <widget class="QLineEdit" name="inp_nombres">
+         <property name="placeholderText">
+          <string>Juan Carlos</string>
+         </property>
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+        </widget>
+       </item>
+
+       <!-- CARRERA -->
+       <item row="4" column="0">
+        <widget class="QLabel" name="label_carrera">
+         <property name="text">
+          <string>Carrera *</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- CICLO -->
+       <item row="4" column="1">
+        <widget class="QLabel" name="label_ciclo">
+         <property name="text">
+          <string>Ciclo</string>
+         </property>
+        </widget>
+       </item>
+
+       <item row="5" column="0">
+        <widget class="QComboBox" name="cmb_carrera">
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+        </widget>
+       </item>
+
+       <item row="5" column="1">
+        <widget class="QComboBox" name="cmb_ciclo">
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+
+         <item>
+          <property name="text">
+           <string>— Sin especificar —</string>
+          </property>
+         </item>
+        </widget>
+       </item>
+
+       <!-- EMAIL -->
+       <item row="6" column="0">
+        <widget class="QLabel" name="label_email">
+         <property name="text">
+          <string>Email</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- TELÉFONO -->
+       <item row="6" column="1">
+        <widget class="QLabel" name="label_telefono">
+         <property name="text">
+          <string>Teléfono</string>
+         </property>
+        </widget>
+       </item>
+
+       <item row="7" column="0">
+        <widget class="QLineEdit" name="inp_email">
+         <property name="placeholderText">
+          <string>juan@unab.edu.pe</string>
+         </property>
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+        </widget>
+       </item>
+
+       <item row="7" column="1">
+        <widget class="QLineEdit" name="inp_telefono">
+         <property name="placeholderText">
+          <string>987654321</string>
+         </property>
+         <property name="minimumHeight">
+          <number>34</number>
+         </property>
+        </widget>
+       </item>
+
+      </layout>
+     </item>
+
+    </layout>
+   </item>
+
+   <!-- MENSAJE -->
+   <item>
+    <widget class="QLabel" name="lbl_mensaje">
+     <property name="text">
+      <string/>
+     </property>
+
+     <property name="visible">
+      <bool>false</bool>
+     </property>
+
+     <property name="wordWrap">
+      <bool>true</bool>
+     </property>
+    </widget>
+   </item>
+
+   <item>
+    <spacer name="verticalSpacer2">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>20</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+
+   <!-- SEPARADOR -->
+   <item>
+    <widget class="Line" name="lineaSeparador">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+    </widget>
+   </item>
+
+   <!-- BOTONES -->
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayoutBotones">
+
+     <item>
+      <spacer name="horizontalSpacer">
+       <property name="orientation">
+        <enum>Qt::Horizontal</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+
+     <item>
+      <widget class="QPushButton" name="btn_cancelar">
+       <property name="minimumSize">
+        <size>
+         <width>110</width>
+         <height>38</height>
+        </size>
+       </property>
+
+       <property name="text">
+        <string>Cancelar</string>
+       </property>
+      </widget>
+     </item>
+
+     <item>
+      <widget class="QPushButton" name="btn_guardar">
+       <property name="minimumSize">
+        <size>
+         <width>170</width>
+         <height>38</height>
+        </size>
+       </property>
+
+       <property name="text">
+        <string>Registrar estudiante</string>
+       </property>
+
+       <property name="styleSheet">
+        <string notr="true">
+QPushButton {
+    background-color:#534AB7;
+    color:white;
+    border:none;
+    border-radius:7px;
+    font-size:13px;
+    font-weight:500;
+}
+
+QPushButton:hover {
+    background-color:#4339A0;
+}
+        </string>
+       </property>
+      </widget>
+     </item>
+
+    </layout>
+   </item>
+
+  </layout>
+ </widget>
+
+ <resources/>
+ <connections/>
+</ui>

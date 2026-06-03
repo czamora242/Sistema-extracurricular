@@ -1,0 +1,480 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>MainWindow</class>
+ <widget class="QMainWindow" name="MainWindow">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>1280</width>
+    <height>760</height>
+   </rect>
+  </property>
+
+  <property name="windowTitle">
+   <string>Sistema de Talleres UNAB</string>
+  </property>
+
+  <!-- ========================= -->
+  <!-- WIDGET CENTRAL -->
+  <!-- ========================= -->
+
+  <widget class="QWidget" name="centralwidget">
+   <layout class="QHBoxLayout" name="layout_raiz">
+
+    <property name="spacing">
+     <number>0</number>
+    </property>
+
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+
+    <!-- ========================= -->
+    <!-- SIDEBAR -->
+    <!-- ========================= -->
+
+    <item>
+     <widget class="QWidget" name="sidebar">
+
+      <property name="minimumSize">
+       <size>
+        <width>220</width>
+        <height>0</height>
+       </size>
+      </property>
+
+      <property name="maximumSize">
+       <size>
+        <width>220</width>
+        <height>16777215</height>
+       </size>
+      </property>
+
+      <layout class="QVBoxLayout" name="sidebar_layout">
+
+       <property name="spacing">
+        <number>2</number>
+       </property>
+
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+
+       <property name="topMargin">
+        <number>24</number>
+       </property>
+
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+
+       <property name="bottomMargin">
+        <number>16</number>
+       </property>
+
+       <!-- Usuario -->
+       <item>
+        <widget class="QLabel" name="sidebar_titulo">
+         <property name="text">
+          <string>👤 Usuario</string>
+         </property>
+
+         <property name="wordWrap">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Rol -->
+       <item>
+        <widget class="QLabel" name="sidebar_rol">
+         <property name="text">
+          <string>ADMINISTRADOR</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Espacio -->
+       <item>
+        <spacer name="spacer_top">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+
+       <!-- Separador -->
+       <item>
+        <widget class="QFrame" name="linea_superior">
+         <property name="frameShape">
+          <enum>QFrame::HLine</enum>
+         </property>
+
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+        </widget>
+       </item>
+
+       <!-- ========================= -->
+       <!-- BOTONES DEL MENÚ -->
+       <!-- ========================= -->
+
+       <item>
+        <widget class="QPushButton" name="btn_inicio">
+         <property name="text">
+          <string>🏠 Inicio</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QPushButton" name="btn_estudiantes">
+         <property name="text">
+          <string>👨‍🎓 Estudiantes</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QPushButton" name="btn_talleres">
+         <property name="text">
+          <string>🎯 Talleres</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QPushButton" name="btn_asistencia">
+         <property name="text">
+          <string>📋 Asistencia</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QPushButton" name="btn_aptos">
+         <property name="text">
+          <string>✅ Lista de Aptos</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QPushButton" name="btn_bienes">
+         <property name="text">
+          <string>📦 Bienes</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QPushButton" name="btn_reportes">
+         <property name="text">
+          <string>📊 Reportes</string>
+         </property>
+        </widget>
+       </item>
+
+       <item>
+        <widget class="QPushButton" name="btn_usuarios">
+         <property name="text">
+          <string>👥 Usuarios</string>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Spacer -->
+       <item>
+        <spacer name="spacer_bottom">
+         <property name="orientation">
+          <enum>Qt::Vertical</enum>
+         </property>
+
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>200</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+
+       <!-- Separador inferior -->
+       <item>
+        <widget class="QFrame" name="linea_inferior">
+         <property name="frameShape">
+          <enum>QFrame::HLine</enum>
+         </property>
+
+         <property name="frameShadow">
+          <enum>QFrame::Sunken</enum>
+         </property>
+        </widget>
+       </item>
+
+       <!-- Logout -->
+       <item>
+        <widget class="QPushButton" name="btn_logout">
+         <property name="text">
+          <string>🔒 Cerrar sesión</string>
+         </property>
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+    <!-- ========================= -->
+    <!-- ÁREA CENTRAL -->
+    <!-- ========================= -->
+
+    <item>
+     <widget class="QWidget" name="area_central">
+
+      <layout class="QVBoxLayout" name="layout_area">
+
+       <property name="spacing">
+        <number>0</number>
+       </property>
+
+       <property name="leftMargin">
+        <number>0</number>
+       </property>
+
+       <property name="topMargin">
+        <number>0</number>
+       </property>
+
+       <property name="rightMargin">
+        <number>0</number>
+       </property>
+
+       <property name="bottomMargin">
+        <number>0</number>
+       </property>
+
+       <!-- STACK -->
+       <item>
+        <widget class="QStackedWidget" name="stack">
+
+         <!-- Página Bienvenida -->
+         <widget class="QWidget" name="page_inicio">
+
+          <layout class="QVBoxLayout" name="layout_bienvenida">
+
+           <property name="spacing">
+            <number>8</number>
+           </property>
+
+           <property name="leftMargin">
+            <number>20</number>
+           </property>
+
+           <property name="topMargin">
+            <number>20</number>
+           </property>
+
+           <property name="rightMargin">
+            <number>20</number>
+           </property>
+
+           <property name="bottomMargin">
+            <number>20</number>
+           </property>
+
+           <item>
+            <spacer name="spacer_bienvenida_top">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>200</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+
+           <!-- Título -->
+           <item>
+            <widget class="QLabel" name="bienvenida_titulo">
+             <property name="text">
+              <string>Bienvenido 👋</string>
+             </property>
+
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+
+           <!-- Sub -->
+           <item>
+            <widget class="QLabel" name="bienvenida_sub">
+             <property name="text">
+              <string>Rol: Administrador · Sesión activa</string>
+             </property>
+
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+
+           <item>
+            <spacer name="spacer_bienvenida_bottom">
+             <property name="orientation">
+              <enum>Qt::Vertical</enum>
+             </property>
+
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>200</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+
+          </layout>
+         </widget>
+
+         <!-- Página Estudiantes -->
+         <widget class="QWidget" name="page_estudiantes">
+          <layout class="QVBoxLayout" name="layout_estudiantes">
+
+           <item>
+            <widget class="QLabel" name="lbl_estudiantes">
+             <property name="text">
+              <string>Módulo de Estudiantes</string>
+             </property>
+
+             <property name="alignment">
+              <set>Qt::AlignCenter</set>
+             </property>
+            </widget>
+           </item>
+
+          </layout>
+         </widget>
+
+        </widget>
+       </item>
+
+      </layout>
+     </widget>
+    </item>
+
+   </layout>
+  </widget>
+
+  <!-- ========================= -->
+  <!-- MENUBAR -->
+  <!-- ========================= -->
+
+  <widget class="QMenuBar" name="menubar">
+
+   <property name="geometry">
+    <rect>
+     <x>0</x>
+     <y>0</y>
+     <width>1280</width>
+     <height>26</height>
+    </rect>
+   </property>
+
+   <widget class="QMenu" name="menuArchivo">
+    <property name="title">
+     <string>Archivo</string>
+    </property>
+
+    <addaction name="actionCerrarSesion"/>
+    <addaction name="separator"/>
+    <addaction name="actionSalir"/>
+   </widget>
+
+   <widget class="QMenu" name="menuCuenta">
+    <property name="title">
+     <string>Mi cuenta</string>
+    </property>
+
+    <addaction name="actionCambiarPassword"/>
+   </widget>
+
+   <widget class="QMenu" name="menuApariencia">
+    <property name="title">
+     <string>Apariencia</string>
+    </property>
+
+    <addaction name="actionTema"/>
+   </widget>
+
+   <addaction name="menuArchivo"/>
+   <addaction name="menuCuenta"/>
+   <addaction name="menuApariencia"/>
+
+  </widget>
+
+  <!-- ========================= -->
+  <!-- STATUS BAR -->
+  <!-- ========================= -->
+
+  <widget class="QStatusBar" name="statusbar"/>
+
+  <!-- ========================= -->
+  <!-- ACTIONS -->
+  <!-- ========================= -->
+
+  <action name="actionCerrarSesion">
+   <property name="text">
+    <string>🔒 Cerrar sesión</string>
+   </property>
+  </action>
+
+  <action name="actionSalir">
+   <property name="text">
+    <string>Salir</string>
+   </property>
+  </action>
+
+  <action name="actionCambiarPassword">
+   <property name="text">
+    <string>🔑 Cambiar contraseña</string>
+   </property>
+  </action>
+
+  <action name="actionTema">
+   <property name="text">
+    <string>🌙 Cambiar tema</string>
+   </property>
+  </action>
+
+ </widget>
+
+ <resources/>
+ <connections/>
+</ui>
