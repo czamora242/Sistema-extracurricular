@@ -44,7 +44,7 @@ NOMBRES DE PROPIEDADES (objectName):
   btn_guardar         QPushButton
   btn_cancelar        QPushButton
 """
-
+import traceback
 from datetime import date, timedelta
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout, QGridLayout,
@@ -415,7 +415,7 @@ class FormularioTallerDialog(QDialog):
                 f"al {ff.strftime('%d/%m/%Y')}."
             )
         except Exception:
-            self.lbl_preview_sesiones.setText("")
+            traceback.print_exc()
 
     # ──────────────────────────────────────────────────────────────
     # VALIDACIÓN Y GUARDADO

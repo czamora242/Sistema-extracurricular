@@ -27,16 +27,18 @@ from models.estudiante  import Estudiante
 
 # EP-03 · Talleres
 from models.ciclo_docente import CicloAcademico, Docente
-from models.taller        import Taller, Sesion, Inscripcion
+from models.taller        import Taller
 
 # EP-04 · Asistencia
 from models.asistencia import Asistencia
-
+from models.sesion import Sesion
+from models.inscripcion import Inscripcion
 # EP-05 · Lista de Aptos
 from models.lista_aptos import ListaAptos, ListaAptoDetalle
 
 # EP-06 · Bienes Patrimoniales
 from models.bienes import BienPatrimonial, AsignacionBien
+
 
 __all__ = [
     # EP-01
@@ -46,7 +48,7 @@ __all__ = [
     # EP-03
     "CicloAcademico", "Docente", "Taller", "Sesion", "Inscripcion",
     # EP-04
-    "Asistencia",
+    "Asistencia","Sesion", "Inscripcion",
     # EP-05
     "ListaAptos", "ListaAptoDetalle",
     # EP-06

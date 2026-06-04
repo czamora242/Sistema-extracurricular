@@ -264,6 +264,7 @@ class TallerService:
                     "categoria":        t.categoria or "",
                     "sede":             t.sede or "",
                     "cupo_maximo":      t.cupo_maximo,
+                    "cupo_disponible":  t.cupo_disponible,
                     "umbral":           t.umbral_asistencia,
                     "descripcion":      t.descripcion or "",
                     "estado":           t.estado,

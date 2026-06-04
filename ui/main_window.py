@@ -11,7 +11,7 @@ from services.auth_service import AuthService, SesionUsuario
 from utils.themes import ThemeManager
 from ui.estudiantes import ListaEstudiantesWidget
 from ui.talleres import ListaTalleresWidget
-
+from ui.asistencia import RegistroAsistenciaDialog
 # ══════════════════════════════════════════════════════════════════
 # DEFINICIÓN DE MÓDULOS POR ROL
 # ══════════════════════════════════════════════════════════════════
@@ -22,7 +22,7 @@ MODULOS = [
     ("Inicio",          "🏠", ["Administrador", "Docente", "Operador"],       None),
     ("Estudiantes",     "👨‍🎓", ["Administrador"],            ListaEstudiantesWidget),  # Sprint 2
     ("Talleres",        "🎯", ["Administrador", "Docente"],    ListaTalleresWidget),  # Sprint 3
-    ("Asistencia",      "📋", ["Administrador", "Docente"],                   None),  # Sprint 4
+    ("Asistencia",      "📋", ["Administrador", "Docente"],RegistroAsistenciaDialog),  # Sprint 4
     ("Lista de Aptos",  "✅", ["Administrador"],                              None),  # Sprint 5
     ("Bienes",          "📦", ["Administrador", "Operador"],                  None),  # Sprint 6
     ("Reportes",        "📊", ["Administrador"],                              None),  # Sprint 7
