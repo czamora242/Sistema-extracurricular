@@ -18,6 +18,8 @@ from ui.reportes.reportes_principal_dialog import ReportesPrincipalDialog
 from ui.lista_aptos.lista_aptos_widget import ListaAptosWidget
 from ui.usuarios.panel_gestionar_usuarios import PanelGestionarUsuarios
 from ui.docentes.panel_gestionar_docentes import PanelGestionarDocentes
+from ui.bienes.lista_bienes_widget import ListaBienesWidget
+
 
 # ══════════════════════════════════════════════════════════════════
 # DEFINICIÓN DE MÓDULOS POR ROL
@@ -32,7 +34,7 @@ MODULOS = [
     ("Talleres",        "🎯", ["Administrador", "Docente"],    ListaTalleresWidget),  # Sprint 3
     ("Asistencia",      "📋", ["Administrador", "Docente"],RegistroAsistenciaDialog),  # Sprint 4
     ("Lista de Aptos",  "✅", ["Administrador"],                   ListaAptosWidget),  # Sprint 5
-    ("Bienes",          "📦", ["Administrador", "Operador"],ReportesPrincipalDialog),  # Sprint 6
+    ("Bienes",          "📦", ["Administrador", "Operador"],      ListaBienesWidget),  # Sprint 6
     ("Reportes",        "📊", ["Administrador"],               ReporteAsistenciaDialog),  # Sprint 7
     ("Usuarios",        "👥", ["Administrador"],                PanelGestionarUsuarios),  # Sprint 1 (extra)
 ]
