@@ -246,24 +246,28 @@ class SesionesDialog(QDialog):
             self.btn_cambiar_estado.rect().bottomLeft()))
 
     def _confirmar_cambio_estado(self, sid: int, nuevo: str, fila: int):
-        """Actualiza el estado en la tabla y en la BD."""
-        # Aquí necesitaríamos un método en TallerService para cambiar estado
-        # Por ahora, solo actualizamos la tabla localmente
+        from services.sesion_service import SesionService
+        res = SesionService.cambiar_estado(sid, nuevo, self.sesion.usuario_id)
+        
+        if not res.ok:
+            QMessageBox.warning(self, "Error", res.mensaje)
+            return
+        
+        # Si fue exitoso, actualizar la tabla
         self._datos[fila]["estado"] = nuevo
         self.tbl_sesiones.item(fila, 3).setText(nuevo)
-
+        
         fg, bg = {
             "Programada": ("#73726c", "#f0eee8"),
             "Realizada":  ("#1D9E75", "#E8F8F2"),
             "Cancelada":  ("#C0392B", "#fdf0ee"),
         }.get(nuevo, ("#333", "#fff"))
-
+        
         item = self.tbl_sesiones.item(fila, 3)
         item.setForeground(QColor(fg))
         item.setBackground(QColor(bg))
-
-        QMessageBox.information(self, "Actualizado",
-            f"Estado de la sesión cambiado a '{nuevo}'.")
+        
+        QMessageBox.information(self, "Actualizado", res.mensaje)
 
     # ──────────────────────────────────────────────────────────────
     def _agregar_observaciones(self):

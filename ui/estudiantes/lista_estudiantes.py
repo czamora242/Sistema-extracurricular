@@ -37,6 +37,13 @@ class ListaEstudiantesWidget(QWidget):
         self._timer.setInterval(350)   # ms de espera antes de buscar
         self._timer.timeout.connect(self._ejecutar_busqueda)
 
+        self.setMinimumSize(1000, 620)
+        self.setWindowTitle("Lista estudiantes")
+        self.setWindowFlags(
+            self.windowFlags() &
+            ~Qt.WindowType.WindowContextHelpButtonHint
+        )
+
         self._construir_ui()
         self._cargar_combos()
         self._ejecutar_busqueda()   # carga inicial
@@ -73,8 +80,8 @@ class ListaEstudiantesWidget(QWidget):
         lbl = QLabel("Estudiantes")
         lbl.setObjectName("lbl_titulo_modulo")
         font = QFont()
-        font.setPointSize(18)
-        font.setWeight(QFont.Weight.Medium)
+        font.setPointSize(20)
+        font.setWeight(QFont.Weight.Bold)
         lbl.setFont(font)
         lay.addWidget(lbl)
         lay.addStretch()
@@ -84,8 +91,7 @@ class ListaEstudiantesWidget(QWidget):
         self.btn_importar.setObjectName("btn_importar")
         self.btn_importar.setFixedHeight(36)
         self.btn_importar.setToolTip(
-            "Importar estudiantes masivamente desde un archivo .xlsx"
-        )
+            "Importar estudiantes masivamente desde un archivo .xlsx")
         self.btn_importar.clicked.connect(self._abrir_importar)
         lay.addWidget(self.btn_importar)
 
@@ -118,8 +124,7 @@ class ListaEstudiantesWidget(QWidget):
         self.inp_buscar = QLineEdit()
         self.inp_buscar.setObjectName("inp_buscar")
         self.inp_buscar.setPlaceholderText("🔍  Buscar por nombre, DNI o código…")
-        self.inp_buscar.setFixedHeight(36)
-        self.inp_buscar.setMinimumWidth(240)
+
         # Conecta al timer (debounce) para no buscar en cada tecla
         self.inp_buscar.textChanged.connect(self._timer.start)
         lay.addWidget(self.inp_buscar, 2)
@@ -127,16 +132,12 @@ class ListaEstudiantesWidget(QWidget):
         # Combo carrera
         self.cmb_carrera = QComboBox()
         self.cmb_carrera.setObjectName("cmb_carrera")
-        self.cmb_carrera.setFixedHeight(36)
-        self.cmb_carrera.setMinimumWidth(170)
         self.cmb_carrera.currentIndexChanged.connect(self._ejecutar_busqueda)
         lay.addWidget(self.cmb_carrera, 2)
 
         # Combo ciclo
         self.cmb_ciclo = QComboBox()
         self.cmb_ciclo.setObjectName("cmb_ciclo")
-        self.cmb_ciclo.setFixedHeight(36)
-        self.cmb_ciclo.setFixedWidth(100)
         self.cmb_ciclo.addItem("Ciclo", None)
         for c in range(1, 11):
             self.cmb_ciclo.addItem(str(c), c)
@@ -146,8 +147,6 @@ class ListaEstudiantesWidget(QWidget):
         # Combo estado
         self.cmb_estado = QComboBox()
         self.cmb_estado.setObjectName("cmb_estado")
-        self.cmb_estado.setFixedHeight(36)
-        self.cmb_estado.setFixedWidth(120)
         self.cmb_estado.addItem("Estado", None)
         self.cmb_estado.addItem("Activo",   "Activo")
         self.cmb_estado.addItem("Inactivo", "Inactivo")
@@ -158,8 +157,7 @@ class ListaEstudiantesWidget(QWidget):
         # Botón limpiar filtros
         self.btn_limpiar = QPushButton("✕ Limpiar")
         self.btn_limpiar.setObjectName("btn_limpiar")
-        self.btn_limpiar.setFixedHeight(36)
-        self.btn_limpiar.setFixedWidth(84)
+
         self.btn_limpiar.clicked.connect(self._limpiar_filtros)
         lay.addWidget(self.btn_limpiar)
 
@@ -391,8 +389,7 @@ class ListaEstudiantesWidget(QWidget):
         opciones = [e for e in ("Activo", "Inactivo", "Egresado")
                     if e != estado_actual]
         for opcion in opciones:
-            menu.addAction(f"Cambiar a {opcion}",
-                           lambda o=opcion: self._confirmar_cambio_estado(est_id, o))
+            menu.addAction(f"Cambiar a {opcion}",lambda o=opcion: self._confirmar_cambio_estado(est_id, o))
 
         menu.exec(self.btn_cambiar_estado.mapToGlobal(
             self.btn_cambiar_estado.rect().bottomLeft()

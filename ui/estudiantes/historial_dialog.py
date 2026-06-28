@@ -139,12 +139,13 @@ class HistorialDialog(QDialog):
     def _cargar_datos(self):
         datos_est = EstudianteService.obtener_por_id(self.estudiante_id)
         historial = EstudianteService.obtener_historial(self.estudiante_id)
+        print(datos_est)
 
         if datos_est:
             self.setWindowTitle(
                 f"Historial — {datos_est['nombre_completo']}"
             )
-            self.lbl_nombre_completo.setText(datos_est["nombre_completo"])
+            self.lbl_nombre_completo.setText(datos_est['nombre_completo'])
             self.lbl_info_estudiante.setText(
                 f"Código: {datos_est['codigo_estudiantil']}   ·   "
                 f"Carrera: {datos_est['carrera']}   ·   "
@@ -152,7 +153,7 @@ class HistorialDialog(QDialog):
                 f"Estado: {datos_est['estado']}"
             )
         else:
-            self.lbl_nombre_completo.setText("Estudiante no encontrado")
+            self.lbl_nombre_completo.setText("contrado")
             return
 
         # Actualizar tarjeta stats

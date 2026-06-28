@@ -94,7 +94,7 @@ class ListaTalleresWidget(QWidget):
 
         lbl = QLabel("Talleres")
         lbl.setObjectName("lbl_titulo_modulo")
-        f = QFont(); f.setPointSize(18); f.setWeight(QFont.Weight.Medium)
+        f = QFont(); f.setPointSize(20); f.setWeight(QFont.Weight.Bold)
         lbl.setFont(f)
         lay.addWidget(lbl)
         lay.addStretch()
@@ -148,7 +148,6 @@ class ListaTalleresWidget(QWidget):
 
         btn_limpiar = QPushButton("✕ Limpiar")
         btn_limpiar.setObjectName("btn_limpiar")
-        btn_limpiar.setFixedSize(84, 36)
         btn_limpiar.clicked.connect(self._limpiar_filtros)
         lay.addWidget(btn_limpiar)
         return frame
@@ -310,8 +309,9 @@ class ListaTalleresWidget(QWidget):
             return
         from ui.talleres.formulario_taller import FormularioTallerDialog
         dlg = FormularioTallerDialog(sesion=self.sesion,
-                                     taller_id=tid, parent=self)
+                                    taller_id=tid, parent=self)
         if dlg.exec():
+            self._limpiar_filtros()
             self._ejecutar_busqueda()
 
     def _abrir_sesiones(self):

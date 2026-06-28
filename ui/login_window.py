@@ -43,58 +43,6 @@ class LoginWindow(QDialog):
 
         # Estilos CSS — Qt soporta un subconjunto de CSS llamado QSS
         self.setStyleSheet("""
-            QDialog {
-                background-color: #f8f7f4;
-            }
-            QLabel#titulo {
-                font-size: 22px;
-                font-weight: 600;
-                color: #1a1a18;
-            }
-            QLabel#subtitulo {
-                font-size: 13px;
-                color: #73726c;
-            }
-            QLabel#etiqueta {
-                font-size: 13px;
-                font-weight: 500;
-                color: #3d3d3a;
-                margin-top: 6px;
-            }
-            QLineEdit {
-                padding: 10px 14px;
-                border: 1px solid #d4d3cc;
-                border-radius: 8px;
-                font-size: 14px;
-                background-color: #ffffff;
-                color: #1a1a18;
-            }
-            QLineEdit:focus {
-                border: 1.5px solid #534AB7;
-                outline: none;
-            }
-            QLineEdit[error="true"] {
-                border: 1.5px solid #C0392B;
-            }
-            QPushButton#btn_ingresar {
-                background-color: #534AB7;
-                color: white;
-                border: none;
-                border-radius: 8px;
-                padding: 12px;
-                font-size: 15px;
-                font-weight: 500;
-                margin-top: 8px;
-            }
-            QPushButton#btn_ingresar:hover {
-                background-color: #4339A0;
-            }
-            QPushButton#btn_ingresar:pressed {
-                background-color: #362E87;
-            }
-            QPushButton#btn_ingresar:disabled {
-                background-color: #a09ed4;
-            }
             QPushButton#btn_ojo {
                 border: none;
                 background: transparent;

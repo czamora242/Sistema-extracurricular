@@ -18,7 +18,8 @@ NOTAS:
   • Vista `v_asistencia_resumen`: porcentaje agregado por estudiante
   • Validaciones: sesión existe, estudiante inscrito, no duplicados
 """
-
+from sqlalchemy import or_
+from sqlalchemy.exc import SQLAlchemyError
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, List, Dict, Any
@@ -47,117 +48,66 @@ class ResultadoAsistencia:
 # ══════════════════════════════════════════════════════════════════════════════
 class AsistenciaService:
     """Servicio de gestión de asistencia a sesiones."""
-
+    
     @staticmethod
-    def registrar(sesion_id: int, estudiante_id: int, presente: bool,
-                  usuario_id: int) -> ResultadoAsistencia:
+    def registrar(sesion_id: int, inscripcion_id: int, estado: str,
+                  usuario_id: int, observacion: str = "") -> ResultadoAsistencia:
         """
-        Registra la asistencia de un estudiante en una sesión.
-
-        VALIDACIONES:
-          • Sesión existe y pertenece a un taller activo
-          • Estudiante está inscrito y activo en el taller
-          • No hay duplicado de registro en la misma sesión
-          • Estudiante no está retirado
-
+        ✅ Registra asistencia de un estudiante en una sesión.
+        
         PARÁMETROS:
-          sesion_id (int): ID de la sesión
-          estudiante_id (int): ID del estudiante
-          presente (bool): True si asistió, False si faltó
-          usuario_id (int): Usuario que registra (para auditoría)
-
-        RETORNA:
-          ResultadoAsistencia con id del registro si OK
-
-        EJEMPLOS:
-          res = AsistenciaService.registrar(5, 123, True, 1)
-          if res.ok:
-              print(f"Asistencia registrada: {res.datos}")
+          sesion_id: ID de la sesión
+          inscripcion_id: ID de la inscripción (NO estudiante_id)
+          estado: "P" (Presente) | "A" (Ausente) | "J" (Justificado)
+          observacion: Obligatorio si estado == "J"
         """
-        with get_session() as session:
-            try:
-                # 1. Validar sesión
-                sesion = session.query(Sesion).filter_by(id=sesion_id).first()
+        if estado not in ("P", "A", "J"):
+            return ResultadoAsistencia(False, f"Estado inválido: {estado}")
+        
+        if estado == "J" and not observacion.strip():
+            return ResultadoAsistencia(False,
+                "La observación es obligatoria para justificaciones.")
+ 
+        try:
+            with get_session() as session:
+                # Verificar que inscripción existe
+                insc = session.get(Inscripcion, inscripcion_id)
+                if not insc:
+                    return ResultadoAsistencia(False, "Inscripción no encontrada")
+ 
+                # Verificar que sesión existe
+                sesion = session.get(Sesion, sesion_id)
                 if not sesion:
-                    return ResultadoAsistencia(
-                        ok=False,
-                        mensaje="Sesión no encontrada"
-                    )
-
-                # 2. Validar taller está activo
-                taller = session.query(Taller).filter_by(id=sesion.taller_id).first()
-                if not taller or taller.estado != "Activo":
-                    return ResultadoAsistencia(
-                        ok=False,
-                        mensaje="Taller no está activo"
-                    )
-
-                # 3. Validar inscripción activa
-                inscripcion = session.query(Inscripcion).filter(
-                    and_(
-                        Inscripcion.taller_id == taller.id,
-                        Inscripcion.estudiante_id == estudiante_id,
-                        Inscripcion.estado == "Activo"
-                    )
+                    return ResultadoAsistencia(False, "Sesión no encontrada")
+ 
+                # ¿Ya registrado?
+                ya_registrado = session.query(Asistencia).filter(
+                    Asistencia.inscripcion_id == inscripcion_id,
+                    Asistencia.sesion_id == sesion_id
                 ).first()
-                if not inscripcion:
-                    return ResultadoAsistencia(
-                        ok=False,
-                        mensaje="Estudiante no está inscrito o fue retirado"
-                    )
-
-                # 4. Validar no hay duplicado
-                existe = session.query(Asistencia).filter(
-                    and_(
-                        Asistencia.sesion_id == sesion_id,
-                        Asistencia.estudiante_id == estudiante_id
-                    )
-                ).first()
-                if existe:
-                    return ResultadoAsistencia(
-                        ok=False,
-                        mensaje="Ya hay registro de asistencia para este estudiante"
-                    )
-
-                # 5. Crear registro
-                asistencia = Asistencia(
-                    sesion_id=sesion_id,
-                    estudiante_id=estudiante_id,
-                    presente=presente,
-                    usuario_id=usuario_id
-                )
-                session.add(asistencia)
-                session.flush()
-
-                # 6. Auditar
-                Auditoria.registrar(
-                    session=session,
-                    tabla="asistencia",
-                    operacion="INSERT",
-                    registro_id=asistencia.id,
-                    datos_nuevos={
-                        "sesion_id": sesion_id,
-                        "estudiante_id": estudiante_id,
-                        "presente": presente
-                    },
-                    usuario_id=usuario_id
-                )
-
+ 
+                if ya_registrado:
+                    # Actualizar existente
+                    ya_registrado.estado = estado
+                    ya_registrado.observacion = observacion.strip() or None
+                    ya_registrado.updated_at = datetime.now()
+                else:
+                    # Crear nuevo
+                    session.add(Asistencia(
+                        inscripcion_id=inscripcion_id,
+                        sesion_id=sesion_id,
+                        estado=estado,
+                        observacion=observacion.strip() or None,
+                        registrado_por=usuario_id,
+                    ))
+ 
                 session.commit()
-
-                return ResultadoAsistencia(
-                    ok=True,
-                    mensaje="Asistencia registrada correctamente",
-                    datos=asistencia.id
-                )
-
-            except Exception as e:
-                session.rollback()
-                return ResultadoAsistencia(
-                    ok=False,
-                    mensaje=f"Error al registrar asistencia: {str(e)}"
-                )
-
+                return ResultadoAsistencia(True, "Asistencia registrada correctamente")
+ 
+        except SQLAlchemyError as e:
+            return ResultadoAsistencia(False, f"Error al guardar: {e}")
+ 
+        
     @staticmethod
     def editar(asistencia_id: int, presente: bool,
                usuario_id: int) -> ResultadoAsistencia:
@@ -214,56 +164,59 @@ class AsistenciaService:
                 return ResultadoAsistencia(
                     ok=False,
                     mensaje=f"Error al editar asistencia: {str(e)}"
-                )
+                )    
 
     @staticmethod
-    def obtener_por_sesion(sesion_id: int) -> List[Dict]:
+    def obtener_por_sesion(sesion_id: int) -> list[dict]:
+        """Obtiene todas las asistencias de una sesión."""
+        try:
+            with get_session() as session:
+                asistencias = (session.query(Asistencia)
+                              .filter(Asistencia.sesion_id == sesion_id)
+                              .all())
+                return [
+                    {
+                        "id": a.id,
+                        "inscripcion_id": a.inscripcion_id,
+                        "estado": a.estado,
+                        "estado_legible": a.estado_legible,
+                        "observacion": a.observacion or "",
+                        "registrado_por": a.registrado_por,
+                    }
+                    for a in asistencias
+                ]
+        except SQLAlchemyError:
+            return []
+ 
+    @staticmethod
+    def obtener_por_taller(taller_id: int) -> dict:
         """
-        Retorna todos los registros de asistencia de una sesión.
-
-        RETORNA:
-          List[dict]: [{
-              "id", "estudiante_id", "nombre_completo", "dni",
-              "carrera", "presente", "fecha_registro"
-          }]
+        Obtiene resumen de asistencia por sesión para un taller.
+        
+        Retorna:
+          {
+            "sesion_1": {"presentes": 25, "ausentes": 3, ...},
+            "sesion_2": {"presentes": 24, "ausentes": 4, ...},
+            ...
+          }
         """
-        with get_session() as session:
-            try:
-                resultados = session.query(
-                    Asistencia.id,
-                    Asistencia.estudiante_id,
-                    Estudiante.nombres,
-                    Estudiante.apellidos,
-                    Estudiante.dni,
-                    Estudiante.carrera_id,
-                    Asistencia.presente,
-                    Asistencia.fecha_registro
-                ).join(
-                    Estudiante, Asistencia.estudiante_id == Estudiante.id
-                ).filter(
-                    Asistencia.sesion_id == sesion_id
-                ).order_by(
-                    Estudiante.nombres, Estudiante.apellidos
-                ).all()
-
-                datos = []
-                for r in resultados:
-                    datos.append({
-                        "id": r.id,
-                        "estudiante_id": r.estudiante_id,
-                        "nombre_completo": f"{r.nombres} {r.apellidos}".strip(),
-                        "dni": r.dni,
-                        "presente": r.presente,
-                        "fecha_registro": r.fecha_registro.strftime(
-                            "%d/%m/%Y %H:%M"
-                        ) if r.fecha_registro else None
-                    })
-
-                return datos
-
-            except Exception as e:
-                print(f"Error al obtener asistencia: {str(e)}")
-                return []
+        try:
+            with get_session() as session:
+                taller = session.get(Taller, taller_id)
+                if not taller:
+                    return {}
+ 
+                resultado = {}
+                for sesion in taller.sesiones:
+                    resultado[f"sesion_{sesion.id}"] = {
+                        "numero": sesion.numero_sesion,
+                        "fecha": str(sesion.fecha),
+                        **AsistenciaService.obtener_resumen_sesion(sesion.id)
+                    }
+ 
+                return resultado
+        except SQLAlchemyError:
+            return {}
 
     @staticmethod
     def obtener_por_estudiante_taller(estudiante_id: int,
@@ -462,26 +415,20 @@ class AsistenciaService:
                 return False
 
     @staticmethod
-    def listar_ciclos() -> List[Dict]:
-        """Retorna ciclos académicos para combos."""
-        with get_session() as session:
-            try:
-                ciclos = session.query(
-                    CicloAcademico.id,
-                    CicloAcademico.nombre
-                ).filter(
-                    CicloAcademico.estado == "Activo"
-                ).order_by(
-                    CicloAcademico.nombre.desc()
-                ).all()
-
+    def listar_ciclos() -> list[dict]:
+        """Lista ciclos académicos activos."""
+        try:
+            with get_session() as session:
+                ciclos = (session.query(CicloAcademico)
+                         .filter(CicloAcademico.activo == True)
+                         .order_by(CicloAcademico.fecha_inicio.desc())
+                         .all())
                 return [
                     {"id": c.id, "nombre": c.nombre}
                     for c in ciclos
                 ]
-
-            except Exception:
-                return []
+        except SQLAlchemyError:
+            return []
 
     @staticmethod
     def listar_talleres(ciclo_id: Optional[int] = None) -> List[Dict]:
@@ -516,89 +463,68 @@ class AsistenciaService:
             try:
                 sesiones = session.query(
                     Sesion.id,
-                    Sesion.numero,
+                    Sesion.numero_sesion,
                     Sesion.fecha,
                     Sesion.hora_inicio,
                     Sesion.hora_fin
                 ).filter(
                     Sesion.taller_id == taller_id
                 ).order_by(
-                    Sesion.numero
+                    Sesion.numero_sesion
                 ).all()
 
                 return [
                     {
                         "id": s.id,
-                        "numero": s.numero,
+                        "numero": s.numero_sesion,
                         "fecha": s.fecha.strftime("%d/%m/%Y") if s.fecha else None,
                         "hora": f"{s.hora_inicio}-{s.hora_fin}" if s.hora_inicio else None
                     }
                     for s in sesiones
                 ]
 
-            except Exception:
-                return []
+            except Exception as e:
+                print(f"Error en obtener_resumen_sesion: {e}")
+                return {"presentes": 0, "porcentaje": 0, "total": 0}
 
     @staticmethod
-    def obtener_resumen_sesion(sesion_id: int) -> Dict:
-        """
-        Retorna resumen de asistencia de una sesión.
-
-        RETORNA:
-          dict: {
-              "total_inscritos": int,
-              "presentes": int,
-              "ausentes": int,
-              "sin_registro": int,
-              "porcentaje": float
-          }
-        """
-        with get_session() as session:
-            try:
-                # Obtener sesión
-                sesion = session.query(Sesion).filter_by(id=sesion_id).first()
+    def obtener_resumen_sesion(sesion_id: int) -> dict:
+        """Obtiene resumen de asistencia de una sesión."""
+        try:
+            with get_session() as session:
+                sesion = session.get(Sesion, sesion_id)
                 if not sesion:
-                    return {}
-
-                # Total inscritos activos
-                total_inscritos = session.query(func.count(Inscripcion.id)).filter(
-                    and_(
-                        Inscripcion.taller_id == sesion.taller_id,
-                        Inscripcion.estado == "Activo"
-                    )
-                ).scalar() or 0
-
-                # Presentes
-                presentes = session.query(func.count(Asistencia.id)).filter(
-                    and_(
-                        Asistencia.sesion_id == sesion_id,
-                        Asistencia.presente == True
-                    )
-                ).scalar() or 0
-
-                # Ausentes
-                ausentes = session.query(func.count(Asistencia.id)).filter(
-                    and_(
-                        Asistencia.sesion_id == sesion_id,
-                        Asistencia.presente == False
-                    )
-                ).scalar() or 0
-
-                sin_registro = total_inscritos - (presentes + ausentes)
-
-                porcentaje = (presentes / total_inscritos * 100
-                             if total_inscritos > 0 else 0.0)
-
+                    return {
+                        "presentes": 0,
+                        "ausentes": 0,
+                        "justificados": 0,
+                        "total": 0,
+                        "porcentaje": 0
+                    }
+ 
+                presentes = sum(1 for a in sesion.asistencias if a.estado == "P")
+                ausentes = sum(1 for a in sesion.asistencias if a.estado == "A")
+                justificados = sum(1 for a in sesion.asistencias if a.estado == "J")
+                total = len(sesion.asistencias)
+                # Los que "cuentan" son P + J
+                cuentan = presentes + justificados
+                pct = (cuentan / total * 100) if total > 0 else 0
                 return {
-                    "total_inscritos": total_inscritos,
                     "presentes": presentes,
                     "ausentes": ausentes,
-                    "sin_registro": sin_registro,
-                    "porcentaje": round(porcentaje, 2)
+                    "justificados": justificados,
+                    "total": total,
+                    "cuentan_asistencia": cuentan,
+                    "porcentaje": pct
                 }
-
-            except Exception:
-                return {}
+        except SQLAlchemyError:
+            return {
+                "presentes": 0,
+                "ausentes": 0,
+                "justificados": 0,
+                "total": 0,
+                "porcentaje": 0
+            }
 
     @staticmethod
     def obtener_resumen_estudiante(estudiante_id: int,
@@ -665,3 +591,48 @@ class AsistenciaService:
 
             except Exception:
                 return {}
+    
+    @staticmethod
+    def obtener_aprobacion_estudiante(inscripcion_id: int,umbral_asistencia: int) -> dict:
+        """
+        Evalúa si un estudiante cumple con el umbral de asistencia.
+        
+        Cuenta: P + J (Presente + Justificado)
+        No cuenta: A (Ausente)
+        """
+        try:
+            with get_session() as session:
+                insc = session.get(Inscripcion, inscripcion_id)
+                if not insc:
+                    return {"apto": False, "razon": "Inscripción no encontrada"}
+ 
+                asistencias = session.query(Asistencia).filter(
+                    Asistencia.inscripcion_id == inscripcion_id
+                ).all()
+ 
+                if not asistencias:
+                    return {
+                        "apto": False,
+                        "razon": "Sin sesiones registradas",
+                        "presentes": 0,
+                        "total": 0,
+                        "porcentaje": 0
+                    }
+ 
+                cuentan = sum(1 for a in asistencias
+                            if a.estado in ("P", "J"))
+                total = len(asistencias)
+                pct = (cuentan / total * 100)
+ 
+                apto = pct >= umbral_asistencia
+ 
+                return {
+                    "apto": apto,
+                    "presentes": cuentan,
+                    "total": total,
+                    "porcentaje": pct,
+                    "umbral": umbral_asistencia,
+                    "razon": f"{pct:.1f}% {'≥' if apto else '<'} {umbral_asistencia}%"
+                }
+        except SQLAlchemyError as e:
+            return {"apto": False, "razon": f"Error: {e}"}

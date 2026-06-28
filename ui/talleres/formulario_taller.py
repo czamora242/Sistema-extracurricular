@@ -383,8 +383,12 @@ class FormularioTallerDialog(QDialog):
     # ──────────────────────────────────────────────────────────────
     # PREVIEW DE SESIONES
     # ──────────────────────────────────────────────────────────────
+
     def _actualizar_preview(self):
         """Calcula y muestra cuántas sesiones se generarían."""
+        if not hasattr(self, 'lbl_preview_sesiones'):
+            return
+            
         try:
             fi = self.dte_inicio.date().toPython()
             ff = self.dte_fin.date().toPython()
@@ -469,6 +473,7 @@ class FormularioTallerDialog(QDialog):
                     fecha_inicio = self.dte_inicio.date().toPython(),
                     fecha_fin    = self.dte_fin.date().toPython(),
                     dias_semana  = dias,
+                    sede         = self.inp_sede.text().strip(),
                     hora_inicio  = self.inp_hora_inicio.text().strip(),
                     hora_fin     = self.inp_hora_fin.text().strip(),
                     usuario_id   = self.sesion.usuario_id,

@@ -29,7 +29,7 @@ from sqlalchemy.exc import SQLAlchemyError
 from database.connection import get_session
 from models import (
     Taller, Sesion, Inscripcion,
-    CicloAcademico, Docente, Estudiante, Auditoria
+    CicloAcademico, Docente, Estudiante, Auditoria, Usuario
 )
 
 
@@ -124,23 +124,36 @@ class TallerService:
                usuario_id: int) -> ResultadoTaller:
         try:
             with get_session() as session:
+                # Obtener taller
                 t = session.get(Taller, taller_id)
                 if not t:
                     return ResultadoTaller(False, "Taller no encontrado.")
-
-                antes = {"nombre": t.nombre, "umbral": t.umbral_asistencia,
-                         "estado": t.estado}
-
-                campos = ["nombre", "docente_id", "categoria", "sede",
-                          "cupo_maximo", "umbral_asistencia", "descripcion"]
+ 
+                # Guardar valores anteriores para auditoría
+                antes = {
+                    "nombre": t.nombre,
+                    "umbral": t.umbral_asistencia,
+                    "estado": t.estado
+                }
+ 
+                # Campos que se pueden editar
+                campos = [
+                    "nombre", "docente_id", "categoria", "sede",
+                    "cupo_maximo", "umbral_asistencia", "descripcion"
+                ]
+                
+                # Aplicar cambios
                 for c in campos:
                     if c in datos:
                         val = datos[c]
                         if isinstance(val, str):
                             val = val.strip() or None
                         setattr(t, c, val)
+                
+                # Actualizar timestamp
                 t.updated_at = datetime.now()
-
+ 
+                # Registrar en auditoría
                 session.add(Auditoria(
                     usuario_id       = usuario_id,
                     tabla_afectada   = "talleres",
@@ -149,11 +162,14 @@ class TallerService:
                     datos_anteriores = antes,
                     datos_nuevos     = {k: datos[k] for k in datos
                                         if k in campos},
-                ))
-
+                ))                
+                session.commit()
+ 
             return ResultadoTaller(True, "Taller actualizado correctamente.")
+            
         except SQLAlchemyError as e:
             return ResultadoTaller(False, f"Error al actualizar: {e}")
+ 
 
     # ══════════════════════════════════════════════════════════════
     # CAMBIAR ESTADO
@@ -285,6 +301,7 @@ class TallerService:
                          dias_semana:  list[int],   # [0=Lun .. 6=Dom]
                          hora_inicio:  str,          # "HH:MM"
                          hora_fin:     str,          # "HH:MM"
+                         sede:         str,          # opcional, para actualizar sede del taller
                          usuario_id:   int) -> ResultadoTaller:
         """
         Genera todas las sesiones de un taller entre fecha_inicio
@@ -476,6 +493,7 @@ class TallerService:
 
                 return [
                     {
+                        "taller_id":       i.taller_id,
                         "inscripcion_id":  i.id,
                         "estudiante_id":   i.estudiante_id,
                         "nombre_completo": i.estudiante.nombre_completo,
@@ -550,13 +568,48 @@ class TallerService:
         except SQLAlchemyError:
             return []
 
+    # Filtro para listar talleres por rol
+
     @staticmethod
-    def contar_por_estado() -> dict:
+    def listar_para_asistencia(usuario_id: int, rol_nombre: str, 
+                            estado: str = "Activo") -> list[dict]:
+        """
+        RETORNA:
+            list[dict] con talleres disponibles para registrar asistencia
+        """
         try:
             with get_session() as session:
-                rows = (session.query(Taller.estado,
-                                      func.count(Taller.id))
-                        .group_by(Taller.estado).all())
-                return {e: n for e, n in rows}
+                query = session.query(Taller)
+                
+                # Filtro por estado (siempre aplica)
+                if estado:
+                    query = query.filter(Taller.estado == estado)
+                
+                # Filtro por rol
+                if rol_nombre == "Docente":
+                    # Necesito obtener el docente asociado al usuario
+                    usuario = session.get(Usuario, usuario_id)
+                    if not usuario or not usuario.docente:
+                        return []  # Usuario docente sin relación docente → sin acceso
+                    
+                    # Filtrar solo los talleres de este docente
+                    query = query.filter(Taller.docente_id == usuario.docente.id)
+                # Si es Administrador, no hay filtro adicional
+                
+                talleres = query.order_by(Taller.nombre).all()
+                
+                return [
+                    {
+                        "id": t.id,
+                        "codigo": t.codigo,
+                        "nombre": t.nombre,
+                        "docente": t.docente.nombre_completo if t.docente else "N/A",
+                        "ciclo": t.ciclo_academico.nombre if t.ciclo_academico else "N/A",
+                        "umbral": t.umbral_asistencia,
+                        "inscritos": t.total_inscritos,
+                    }
+                    for t in talleres
+                ]
+        
         except SQLAlchemyError:
-            return {}
+            return []

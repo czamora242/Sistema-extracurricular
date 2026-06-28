@@ -1,78 +1,54 @@
 """
-ui/asistencia/registro_asistencia_dialog.py   ──   Sprint 4 / HU-09
-═══════════════════════════════════════════════════════════════════
+ui/asistencia/registro_asistencia_dialog.py   ──   ACTUALIZADO CON FILTRADO POR ROL
+═══════════════════════════════════════════════════════════════════════════════════
 
-Diálogo para registrar asistencia de estudiantes en una sesión.
-
-LAYOUT:
-  ┌──────────────────────────────────────────────────────┐
-  │  Registrar Asistencia          [✕ Cerrar]            │
-  │──────────────────────────────────────────────────────│
-  │  Taller: [Danzas Folklóricas ▼]                      │
-  │  Sesión: [Sesión 3 — 03/06/2025 ▼]                   │
-  │                                                       │
-  │  28/30 inscritos | Sesión programada                 │
-  │──────────────────────────────────────────────────────│
-  │  🔍 [Buscar por nombre…]                             │
-  │──────────────────────────────────────────────────────│
-  │  ☑ | Nombre    | DNI | Presente | Ausente | Hora   │
-  │──────────────────────────────────────────────────────│
-  │  ☑ | María… | 12345678 | ✓      |        | 14:02   │
-  │  ☐ | Juan…  | 87654321 |        | ✓      |        │
-  │──────────────────────────────────────────────────────│
-  │  [✓ Todos presente] [✗ Todos ausente]                │
-  │                                                       │
-  │  28 de 30 presentes (93%)                            │
-  │──────────────────────────────────────────────────────│
-  │                    [Cancelar] [Guardar asistencia]   │
-  └──────────────────────────────────────────────────────┘
-
-NOMBRES DE PROPIEDADES (objectName):
-  cmb_taller, cmb_sesion, inp_buscar, tbl_asistencia
-  btn_todos_presente, btn_todos_ausente, btn_limpiar
-  lbl_info_sesion, lbl_estado, btn_guardar, btn_cancelar
+Ahora filtra talleres según el rol:
+  - Administrador → Ve todos los talleres
+  - Docente → Ve solo sus talleres a cargo
 """
 
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QTableWidget, QTableWidgetItem,
     QHeaderView, QAbstractItemView, QComboBox,
-    QLineEdit, QCheckBox, QMessageBox,
+    QLineEdit, QMessageBox, QCheckBox,QWidget
 )
 from PySide6.QtCore import Qt, QTimer
-from PySide6.QtGui  import QColor, QFont
+from PySide6.QtGui import QColor, QFont
 
 from services.asistencia_service import AsistenciaService
 from services.taller_service import TallerService
 
 
-class RegistroAsistenciaDialog(QDialog):
+class RegistroAsistenciaDialog(QWidget):
     """
     USO:
         dlg = RegistroAsistenciaDialog(sesion=sesion_usuario, parent=self)
-        dlg.exec()
+        if dlg.exec(): ...
+    
+    CAMBIO:
+        Ahora usa TallerService.listar_para_asistencia(usuario_id, rol_nombre)
+        para filtrar talleres según el rol del usuario.
     """
 
     COLUMNAS = [
-        (0, "☑",          40),
-        (1, "Nombre",    250),
-        (2, "DNI",       100),
-        (3, "Carrera",   150),
-        (4, "Presente",   80),
-        (5, "Ausente",    80),
-        (6, "Hora",      120),
+        (0, "Nombre",    250),
+        (1, "DNI",       100),
+        (2, "Carrera",   150),
+        (3, "Presente",   80),
+        (4, "Ausente",    80),
+        (5, "Justif.",    80),
     ]
 
     def __init__(self, sesion_usuario, parent=None):
         super().__init__(parent)
         self.sesion       = sesion_usuario
-        self._datos_inscritos = []
-        self._asistencias = {}  # {estudiante_id: presente}
+        self._inscritos   = []
+        self._asistencias = {}
         self._timer = QTimer(singleShot=True, interval=300)
         self._timer.timeout.connect(self._filtrar_tabla)
 
-        self.setModal(True)
-        self.setMinimumSize(940, 600)
+        self.setMinimumSize(1000, 620)
         self.setWindowTitle("Registrar Asistencia")
         self.setWindowFlags(
             self.windowFlags() &
@@ -85,16 +61,16 @@ class RegistroAsistenciaDialog(QDialog):
     # ──────────────────────────────────────────────────────────────
     def _construir_ui(self):
         raiz = QVBoxLayout(self)
-        raiz.setContentsMargins(20, 16, 20, 16)
+        raiz.setContentsMargins(24, 20, 24, 16)
         raiz.setSpacing(0)
 
         # Título
         lbl_titulo = QLabel("Registrar Asistencia")
         lbl_titulo.setObjectName("lbl_titulo_dialogo")
-        f = QFont(); f.setPointSize(16); f.setWeight(QFont.Weight.Medium)
+        f = QFont(); f.setPointSize(20); f.setWeight(QFont.Weight.Bold)
         lbl_titulo.setFont(f)
         raiz.addWidget(lbl_titulo)
-        raiz.addSpacing(12)
+        raiz.addSpacing(10)
 
         # Selecciones
         sel = QHBoxLayout()
@@ -146,20 +122,20 @@ class RegistroAsistenciaDialog(QDialog):
         # Controles
         controles = QHBoxLayout()
 
-        self.btn_todos_presente = QPushButton("✓ Todos presente")
+        self.btn_todos_presente = QPushButton("✓ Todos Presente")
         self.btn_todos_presente.setObjectName("btn_todos_presente")
         self.btn_todos_presente.setFixedHeight(32)
         self.btn_todos_presente.clicked.connect(
-            lambda: self._marcar_todos(True))
+            lambda: self._marcar_todos("P"))
         controles.addWidget(self.btn_todos_presente)
 
         controles.addSpacing(6)
 
-        self.btn_todos_ausente = QPushButton("✗ Todos ausente")
+        self.btn_todos_ausente = QPushButton("✗ Todos Ausente")
         self.btn_todos_ausente.setObjectName("btn_todos_ausente")
         self.btn_todos_ausente.setFixedHeight(32)
         self.btn_todos_ausente.clicked.connect(
-            lambda: self._marcar_todos(False))
+            lambda: self._marcar_todos("A"))
         controles.addWidget(self.btn_todos_ausente)
 
         controles.addSpacing(6)
@@ -185,14 +161,6 @@ class RegistroAsistenciaDialog(QDialog):
         # Botones pie
         pie = QHBoxLayout()
         pie.addStretch()
-
-        self.btn_cancelar = QPushButton("Cancelar")
-        self.btn_cancelar.setObjectName("btn_cancelar")
-        self.btn_cancelar.setFixedSize(100, 34)
-        self.btn_cancelar.clicked.connect(self.reject)
-        pie.addWidget(self.btn_cancelar)
-
-        pie.addSpacing(8)
 
         self.btn_guardar = QPushButton("Guardar asistencia")
         self.btn_guardar.setObjectName("btn_guardar")
@@ -221,14 +189,55 @@ class RegistroAsistenciaDialog(QDialog):
         tbl.horizontalHeader().setSectionResizeMode(
             1, QHeaderView.ResizeMode.Stretch)
         tbl.verticalHeader().setDefaultSectionSize(32)
+        tbl.itemChanged.connect(self._on_estado_cambiado)
         return tbl
 
     # ──────────────────────────────────────────────────────────────
     def _cargar_datos(self):
-        """Carga datos de ciclos y talleres."""
-        ciclos = AsistenciaService.listar_ciclos()
-        for ciclo in ciclos:
-            self.cmb_taller.addItem(ciclo["nombre"], ciclo["id"])
+        """
+        ✅ CAMBIO: Usa listar_para_asistencia() que filtra por rol
+        
+        Si es Administrador → Ve todos los talleres
+        Si es Docente → Ve solo sus talleres a cargo
+        """
+        talleres = TallerService.listar_para_asistencia(
+            usuario_id=self.sesion.usuario_id,
+            rol_nombre=self.sesion.rol_nombre,
+            estado="Activo"
+        )
+        
+        if not talleres:
+            if self.sesion.es_docente:
+                mensaje = "❌ No tienes talleres asignados"
+            else:
+                mensaje = "❌ No hay talleres activos"
+            self.cmb_taller.addItem(mensaje, None)
+            return
+        
+        for taller in talleres:
+            self.cmb_taller.addItem(
+                f"{taller['nombre']} ({taller['docente']})",
+                taller["id"]
+            )
+
+    def _on_estado_cambiado(self, item):
+        """Permite marcar solo un estado (P/A/J) por fila."""
+        col = item.column()
+        if col not in (3, 4, 5):
+            return
+        if item.checkState() != Qt.CheckState.Checked:
+            return
+        self.tbl_asistencia.blockSignals(True)
+        fila = item.row()
+        for c in (3, 4, 5):
+            if c != col:
+                otro = self.tbl_asistencia.item(fila, c)
+                if otro:
+                    otro.setCheckState(Qt.CheckState.Unchecked)
+
+        self.tbl_asistencia.blockSignals(False)
+        self.btn_guardar.setEnabled(True)
+        self._actualizar_estado()
 
     def _on_taller_cambio(self):
         """Al cambiar taller, cargar sesiones."""
@@ -240,9 +249,9 @@ class RegistroAsistenciaDialog(QDialog):
         if not taller_id:
             return
 
-        sesiones = AsistenciaService.listar_sesiones(taller_id)
+        sesiones = TallerService.listar_sesiones(taller_id)
         for ses in sesiones:
-            texto = f"Sesión {ses['numero']} — {ses['fecha']} {ses['hora']}"
+            texto = f"Sesión {ses['numero']} — {ses['fecha']}"
             self.cmb_sesion.addItem(texto, ses["id"])
 
     def _on_sesion_cambio(self):
@@ -253,127 +262,105 @@ class RegistroAsistenciaDialog(QDialog):
             self.btn_guardar.setEnabled(False)
             return
 
-        # Obtener inscritos
         taller_id = self.cmb_taller.currentData()
-        from services.taller_service import TallerService
-        self._datos_inscritos = TallerService.listar_inscritos(
+        self._inscritos = TallerService.listar_inscritos(
             taller_id, solo_activos=True
         )
 
-        # Obtener asistencias previas si existen
         self._asistencias = {}
         asistencias_previas = AsistenciaService.obtener_por_sesion(sesion_id)
         for a in asistencias_previas:
-            self._asistencias[a["estudiante_id"]] = a["presente"]
+            self._asistencias[a["inscripcion_id"]] = {
+                "estado": a["estado"],
+                "observacion": a.get("observacion", "")
+            }
 
-        # Actualizar info
-        resumen = AsistenciaService.obtener_resumen_sesion(sesion_id)
+        presentes = sum(1 for a in asistencias_previas if a["estado"] == "P")
+        justificados = sum(1 for a in asistencias_previas if a["estado"] == "J")
+        
         self.lbl_info_sesion.setText(
-            f"<b>{len(self._datos_inscritos)} inscritos</b> | "
-            f"{resumen.get('presentes', 0)} presentes "
-            f"({resumen.get('porcentaje', 0):.1f}%)"
+            f"<b>{len(self._inscritos)} inscritos</b> | "
+            f"{presentes} presentes | {justificados} justificados"
         )
 
-        # Poblar tabla
         self._poblar_tabla()
-
-        # Si hay asistencias previas, no permitir guardar de nuevo
         self.btn_guardar.setEnabled(len(self._asistencias) == 0)
 
     def _poblar_tabla(self):
         """Llena la tabla con inscritos."""
-        self.tbl_asistencia.setRowCount(len(self._datos_inscritos))
-
-        for fila, est in enumerate(self._datos_inscritos):
-            est_id = est["estudiante_id"]
-            presente = self._asistencias.get(est_id)
-
-            # Columna 0: Checkbox selección (para futura multi-selección)
-            item_sel = QTableWidgetItem("☑")
-            item_sel.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.tbl_asistencia.setItem(fila, 0, item_sel)
-
-            # Columna 1: Nombre
+        self.tbl_asistencia.blockSignals(True)
+        self.tbl_asistencia.setRowCount(len(self._inscritos))
+        for fila, est in enumerate(self._inscritos):
+            insc_id = est["inscripcion_id"]
+            prev = self._asistencias.get(insc_id, {})
+            
+            # Nombre
             item_nombre = QTableWidgetItem(est["nombre_completo"])
-            item_nombre.setData(Qt.ItemDataRole.UserRole, est_id)
-            self.tbl_asistencia.setItem(fila, 1, item_nombre)
-
-            # Columna 2: DNI
+            item_nombre.setData(Qt.ItemDataRole.UserRole, insc_id)
+            self.tbl_asistencia.setItem(fila, 0, item_nombre)
+            
+            # DNI
             item_dni = QTableWidgetItem(est["dni"])
             item_dni.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.tbl_asistencia.setItem(fila, 2, item_dni)
-
-            # Columna 3: Carrera
+            self.tbl_asistencia.setItem(fila, 1, item_dni)
+            
+            # Carrera
             item_carrera = QTableWidgetItem(est["carrera"])
-            self.tbl_asistencia.setItem(fila, 3, item_carrera)
+            self.tbl_asistencia.setItem(fila, 2, item_carrera)
+            
+            # Presente, Ausente, Justificado
+            for col_idx in (3, 4, 5):
+                item = QTableWidgetItem()
+                item.setFlags(
+                    Qt.ItemFlag.ItemIsEnabled |
+                    Qt.ItemFlag.ItemIsUserCheckable
+                )
+                self.tbl_asistencia.setItem(fila, col_idx, item)
 
-            # Columna 4: Presente (checkbox editable)
-            item_presente = QTableWidgetItem()
-            item_presente.setCheckState(
-                Qt.CheckState.Checked if presente is True else Qt.CheckState.Unchecked
-            )
-            item_presente.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            item_presente.setData(Qt.ItemDataRole.UserRole + 1, "presente")
-            self.tbl_asistencia.setItem(fila, 4, item_presente)
-
-            # Columna 5: Ausente (checkbox editable)
-            item_ausente = QTableWidgetItem()
-            item_ausente.setCheckState(
-                Qt.CheckState.Checked if presente is False else Qt.CheckState.Unchecked
-            )
-            item_ausente.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            item_ausente.setData(Qt.ItemDataRole.UserRole + 1, "ausente")
-            self.tbl_asistencia.setItem(fila, 5, item_ausente)
-
-            # Columna 6: Hora (solo lectura si hay previo)
-            hora_texto = ""
-            if presente is not None:
-                hora_texto = "14:02"  # Placeholder - obtener de BD en producción
-            item_hora = QTableWidgetItem(hora_texto)
-            item_hora.setTextAlignment(Qt.AlignmentFlag.AlignCenter)
-            self.tbl_asistencia.setItem(fila, 6, item_hora)
-
+        self.tbl_asistencia.blockSignals(False)
         self._actualizar_estado()
 
-    def _marcar_todos(self, presente: bool):
-        """Marca todos los estudiantes como presente/ausente."""
+    def _marcar_todos(self, estado: str):
+        """Marca todos los estudiantes con el estado indicado."""
+        col_map = {"P": 3, "A": 4, "J": 5}
+        self.tbl_asistencia.blockSignals(True)
         for fila in range(self.tbl_asistencia.rowCount()):
-            item_presente = self.tbl_asistencia.item(fila, 4)
-            item_ausente = self.tbl_asistencia.item(fila, 5)
-
-            if presente:
-                item_presente.setCheckState(Qt.CheckState.Checked)
-                item_ausente.setCheckState(Qt.CheckState.Unchecked)
-            else:
-                item_presente.setCheckState(Qt.CheckState.Unchecked)
-                item_ausente.setCheckState(Qt.CheckState.Checked)
-
+            self.tbl_asistencia.item(fila, 3).setCheckState(Qt.CheckState.Unchecked)
+            self.tbl_asistencia.item(fila, 4).setCheckState(Qt.CheckState.Unchecked)
+            self.tbl_asistencia.item(fila, 5).setCheckState(Qt.CheckState.Unchecked)
+            self.tbl_asistencia.item(fila, col_map[estado]).setCheckState(Qt.CheckState.Checked)
+        self.tbl_asistencia.blockSignals(False)
+        self.btn_guardar.setEnabled(True)
         self._actualizar_estado()
 
     def _filtrar_tabla(self):
         """Filtra tabla por búsqueda."""
         texto = self.inp_buscar.text().lower()
-
         for fila in range(self.tbl_asistencia.rowCount()):
-            nombre = self.tbl_asistencia.item(fila, 1).text().lower()
-            dni = self.tbl_asistencia.item(fila, 2).text().lower()
-
+            nombre = self.tbl_asistencia.item(fila, 0).text().lower()
+            dni = self.tbl_asistencia.item(fila, 1).text().lower()
             visible = texto in nombre or texto in dni
             self.tbl_asistencia.setRowHidden(fila, not visible)
 
     def _actualizar_estado(self):
         """Actualiza el label de estado."""
         presentes = 0
+        ausentes = 0
+        justificados = 0
+        
         for fila in range(self.tbl_asistencia.rowCount()):
-            item = self.tbl_asistencia.item(fila, 4)
-            if item.checkState() == Qt.CheckState.Checked:
+            if self.tbl_asistencia.item(fila, 3).checkState() == Qt.CheckState.Checked:
                 presentes += 1
+            elif self.tbl_asistencia.item(fila, 4).checkState() == Qt.CheckState.Checked:
+                ausentes += 1
+            elif self.tbl_asistencia.item(fila, 5).checkState() == Qt.CheckState.Checked:
+                justificados += 1
 
         total = self.tbl_asistencia.rowCount()
-        pct = (presentes / total * 100) if total > 0 else 0
 
         self.lbl_estado.setText(
-            f"<b>{presentes} de {total} presentes ({pct:.1f}%)</b>"
+            f"<b>{presentes} presentes | {justificados} justificados | "
+            f"{ausentes} ausentes</b> (Total: {total})"
         )
 
     def _guardar_asistencia(self):
@@ -385,29 +372,45 @@ class RegistroAsistenciaDialog(QDialog):
 
         registrados = 0
         errores = 0
+        errores_msg = []
 
         for fila in range(self.tbl_asistencia.rowCount()):
-            nombre_item = self.tbl_asistencia.item(fila, 1)
-            est_id = nombre_item.data(Qt.ItemDataRole.UserRole)
+            nombre_item = self.tbl_asistencia.item(fila, 0)
+            insc_id = nombre_item.data(Qt.ItemDataRole.UserRole)
 
-            item_presente = self.tbl_asistencia.item(fila, 4)
-            presente = item_presente.checkState() == Qt.CheckState.Checked
+            estado = None
+            if self.tbl_asistencia.item(fila, 3).checkState() == Qt.CheckState.Checked:
+                estado = "P"
+            elif self.tbl_asistencia.item(fila, 4).checkState() == Qt.CheckState.Checked:
+                estado = "A"
+            elif self.tbl_asistencia.item(fila, 5).checkState() == Qt.CheckState.Checked:
+                estado = "J"
+
+            if not estado:
+                errores += 1
+                errores_msg.append(f"Fila {fila + 1}: Sin estado seleccionado")
+                continue
 
             res = AsistenciaService.registrar(
-                sesion_id, est_id, presente, self.sesion.usuario_id
+                sesion_id=sesion_id,
+                inscripcion_id=insc_id,
+                estado=estado,
+                usuario_id=self.sesion.usuario_id
             )
 
             if res.ok:
                 registrados += 1
             else:
                 errores += 1
+                errores_msg.append(f"Fila {fila + 1}: {res.mensaje}")
 
-        mensaje = f"Asistencia registrada: {registrados} estudiantes"
+        mensaje = f"✅ Asistencia registrada: {registrados} estudiantes"
         if errores > 0:
-            mensaje += f" ({errores} errores)"
+            mensaje += f"\n❌ Errores: {errores}"
+            if errores_msg:
+                mensaje += "\n" + "\n".join(errores_msg[:3])
 
-        QMessageBox.information(self, "Éxito", mensaje)
+        QMessageBox.information(self, "Resultado", mensaje)
         
-        # Cerrar tras 1200ms
-        from PySide6.QtCore import QTimer as QtTimer
-        QtTimer.singleShot(1200, self.accept)
+        if registrados > 0 and errores == 0:
+            self._on_sesion_cambio()

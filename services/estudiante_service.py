@@ -10,7 +10,7 @@ from database.connection import get_session
 from models import (
     Estudiante, Carrera, Facultad,
     Inscripcion, Asistencia, Sesion,
-    ListaAptoDetalle, Auditoria
+    ListaAptoDetalle, Auditoria, Usuario
 )
 
 
@@ -226,6 +226,7 @@ class EstudianteService:
                     "codigo_estudiantil": e.codigo_estudiantil,
                     "nombres":            e.nombres,
                     "apellidos":          e.apellidos,
+                    "nombre_completo":    e.nombre_completo,
                     "carrera_id":         e.carrera_id,
                     "carrera":            e.carrera.nombre,
                     "facultad":           e.carrera.facultad.nombre,
@@ -311,7 +312,6 @@ class EstudianteService:
         """
         Cambia el estado a Inactivo o Egresado.
         NUNCA elimina el registro ni su historial.
-
         nuevo_estado: "Inactivo" o "Egresado"
         """
         estados_validos = ("Activo", "Inactivo", "Egresado")
@@ -419,7 +419,7 @@ class EstudianteService:
                     talleres_cursados.append({
                         "taller_id":          taller.id,
                         "taller_nombre":      taller.nombre,
-                        "ciclo":              taller.ciclo_academico.nombre,
+                        "ciclo":              taller.ciclo_academico_id,
                         "docente":            taller.docente.nombre_completo,
                         "sesiones_asistidas": asistidas,
                         "sesiones_totales":   sesiones_realizadas,
@@ -448,6 +448,57 @@ class EstudianteService:
         except SQLAlchemyError:
             return {"talleres": [], "total_talleres": 0,
                     "asistencia_global": 0.0}
+        
+    # ══════════════════════════════════════════════════════════════
+    # LISTAR ESTUDIANTES PARA COMBOS
+    # ══════════════════════════════════════════════════════════════
+    @staticmethod
+    def listar() -> ResultadoEstudiante:
+        """
+        Lista estudiantes activos para ComboBox.
+
+        Retorna:
+        [
+            {
+                "id": 1,
+                "codigo": "2024001",
+                "nombre": "Juan Pérez"
+            }
+        ]
+        """
+        try:
+            with get_session() as session:
+                estudiantes = (
+                    session.query(Estudiante)
+                    .filter(Estudiante.estado == "Activo")
+                    .order_by(
+                        Estudiante.apellidos,
+                        Estudiante.nombres
+                    )
+                    .all()
+                )
+
+                lista = [
+                    {
+                        "id": e.id,
+                        "codigo": e.codigo_estudiantil,
+                        "nombre": e.nombre_completo
+                    }
+                    for e in estudiantes
+                ]
+
+                return ResultadoEstudiante(
+                    ok=True,
+                    mensaje="Estudiantes cargados correctamente",
+                    lista=lista
+                )
+
+        except SQLAlchemyError as e:
+            return ResultadoEstudiante(
+                ok=False,
+                mensaje=f"Error al obtener estudiantes: {e}",
+                lista=[]
+            )
 
     # ══════════════════════════════════════════════════════════════
     # DATOS AUXILIARES PARA COMBOS DE LA UI

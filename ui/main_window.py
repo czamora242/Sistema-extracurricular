@@ -12,6 +12,13 @@ from utils.themes import ThemeManager
 from ui.estudiantes import ListaEstudiantesWidget
 from ui.talleres import ListaTalleresWidget
 from ui.asistencia import RegistroAsistenciaDialog
+from ui.reportes import DashboardWidget
+from ui.reportes.reporte_sesion_dialog import ReporteAsistenciaDialog
+from ui.reportes.reportes_principal_dialog import ReportesPrincipalDialog
+from ui.lista_aptos.lista_aptos_widget import ListaAptosWidget
+from ui.usuarios.panel_gestionar_usuarios import PanelGestionarUsuarios
+from ui.docentes.panel_gestionar_docentes import PanelGestionarDocentes
+
 # ══════════════════════════════════════════════════════════════════
 # DEFINICIÓN DE MÓDULOS POR ROL
 # ══════════════════════════════════════════════════════════════════
@@ -19,14 +26,15 @@ from ui.asistencia import RegistroAsistenciaDialog
 # widget_class = None hasta que se implemente en su sprint
 
 MODULOS = [
-    ("Inicio",          "🏠", ["Administrador", "Docente", "Operador"],       None),
+    ("Inicio",          "🏠", ["Administrador", "Docente", "Operador"],DashboardWidget),
     ("Estudiantes",     "👨‍🎓", ["Administrador"],            ListaEstudiantesWidget),  # Sprint 2
+    ("Docentes",        "👩‍🏫", ["Administrador"],            PanelGestionarDocentes),  # Sprint 2 (extra)
     ("Talleres",        "🎯", ["Administrador", "Docente"],    ListaTalleresWidget),  # Sprint 3
     ("Asistencia",      "📋", ["Administrador", "Docente"],RegistroAsistenciaDialog),  # Sprint 4
-    ("Lista de Aptos",  "✅", ["Administrador"],                              None),  # Sprint 5
-    ("Bienes",          "📦", ["Administrador", "Operador"],                  None),  # Sprint 6
-    ("Reportes",        "📊", ["Administrador"],                              None),  # Sprint 7
-    ("Usuarios",        "👥", ["Administrador"],                              None),  # Sprint 1 (extra)
+    ("Lista de Aptos",  "✅", ["Administrador"],                   ListaAptosWidget),  # Sprint 5
+    ("Bienes",          "📦", ["Administrador", "Operador"],ReportesPrincipalDialog),  # Sprint 6
+    ("Reportes",        "📊", ["Administrador"],               ReporteAsistenciaDialog),  # Sprint 7
+    ("Usuarios",        "👥", ["Administrador"],                PanelGestionarUsuarios),  # Sprint 1 (extra)
 ]
 
 
@@ -109,11 +117,6 @@ class MainWindow(QMainWindow):
             QWidget#area_central {
                 background-color: #f8f7f4;
             }
-            QLabel#bienvenida_titulo {
-                font-size: 24px;
-                font-weight: 600;
-                color: #1a1a18;
-            }
             QLabel#bienvenida_sub {
                 font-size: 14px;
                 color: #73726c;
@@ -152,7 +155,7 @@ class MainWindow(QMainWindow):
         # ── Menú: Apariencia ─────────────────────────────────────
         menu_apariencia = barra.addMenu("Apariencia")
 
-        self.act_tema = QAction("🌙  Cambiar a tema oscuro", self)
+        self.act_tema = QAction("🌙 Cambiar tema", self)
         self.act_tema.setShortcut("Ctrl+Shift+T")
         self.act_tema.triggered.connect(self._toggle_tema)
         # Actualizar el texto del menú según el tema actual
@@ -255,7 +258,7 @@ class MainWindow(QMainWindow):
         self.stack = QStackedWidget()
 
         # Índice 0 → Inicio (bienvenida)
-        self.stack.addWidget(self._pagina_bienvenida())
+        self.stack.addWidget(DashboardWidget(self.sesion))  # Página de bienvenida
 
         # Mapa nombre_módulo → índice en el stack
         self._stack_indices = {"Inicio": 0}
@@ -404,9 +407,9 @@ class MainWindow(QMainWindow):
     def _actualizar_texto_tema(self) -> None:
         if hasattr(self, 'act_tema'):
             if ThemeManager.tema_actual() == "claro":
-                self.act_tema.setText("🌙  Cambiar a tema oscuro")
+                self.act_tema.setText("🌙  Cambiar tema ")
             else:
-                self.act_tema.setText("☀️  Cambiar a tema claro")
+                self.act_tema.setText("☀️  Cambiar tema")
 
     def _abrir_cambio_password(self) -> None:
         from ui.cambio_password_dialog import CambioPasswordDialog
