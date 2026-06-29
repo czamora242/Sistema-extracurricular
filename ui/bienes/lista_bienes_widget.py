@@ -5,7 +5,7 @@ ui/bienes/lista_bienes_widget.py   ──   EP-06 Gestión de Bienes
 Widget para listar, agregar, editar y gestionar bienes patrimoniales.
 """
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt,QTimer
 from PySide6.QtGui import QFont, QColor
 from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout, QPushButton, QLabel,
@@ -26,67 +26,73 @@ class ListaBienesWidget(QWidget):
         self.sesion = sesion
         self.bienes_service = BienesService()
         self.bienes_filtrados = []
+        self._timer   = QTimer()    
+        self._timer.setSingleShot(True)
+        self._timer.setInterval(350) 
+
+        self.setMinimumSize(1000, 620)
+        self.setWindowTitle("Lista de bienes")
+        self.setWindowFlags(
+            self.windowFlags() &
+            ~Qt.WindowType.WindowContextHelpButtonHint
+        )
 
         self._construir_ui()
         self._cargar_datos()
 
-    def _construir_ui(self) -> None:
+    def _construir_ui(self):
         layout = QVBoxLayout(self)
+        layout.setContentsMargins(24, 20, 24, 16)
+        layout.setSpacing(0)
 
         # ── TÍTULO ────────────────────────────────────────────────
-        titulo = QLabel("Gestión de Bienes Patrimoniales")
+        titulo = QLabel("Bienes Patrimoniales")
         font = QFont()
-        font.setPointSize(16)
-        font.setBold(True)
+        font.setPointSize(20)
+        font.setWeight(QFont.Weight.Bold)
         titulo.setFont(font)
         layout.addWidget(titulo)
 
         # ── FILTROS ───────────────────────────────────────────────
         layout.addWidget(self._crear_panel_filtros())
+        layout.addSpacing(30)
 
         # ── TABLA ────────────────────────────────────────────────
         self.tabla_bienes = QTableWidget()
         self.tabla_bienes.setColumnCount(6)
+        self.tabla_bienes.verticalHeader().setVisible(False)
+        self.tabla_bienes.setWordWrap(False)
+
+        header = self.tabla_bienes.horizontalHeader()
+        header.setSectionResizeMode(0, QHeaderView.ResizeMode.ResizeToContents)
+
         self.tabla_bienes.setHorizontalHeaderLabels([
-            "Código", "Descripción", "Categoría", "Estado", "Valor", "Acciones"
-        ])
-        self.tabla_bienes.horizontalHeader().setSectionResizeMode(
-            1, QHeaderView.ResizeMode.Stretch
-        )
+            "Código", "Descripción", "Categoría", "Estado", "Valor", "Acciones"])
+        self.tabla_bienes.horizontalHeader().setSectionResizeMode(1, QHeaderView.ResizeMode.Stretch)
         self.tabla_bienes.setSelectionBehavior(QTableWidget.SelectRows)
         layout.addWidget(self.tabla_bienes, 1)
 
-        # ── BOTONES ───────────────────────────────────────────────
-        botones = QHBoxLayout()
-
-        btn_agregar = QPushButton("➕ Agregar Bien")
-        btn_agregar.clicked.connect(self._abrir_agregar)
-        botones.addWidget(btn_agregar)
-
-        botones.addStretch()
-
-        btn_actualizar = QPushButton("🔄 Actualizar")
-        btn_actualizar.clicked.connect(self._cargar_datos)
-        botones.addWidget(btn_actualizar)
-
-        layout.addLayout(botones)
 
     def _crear_panel_filtros(self) -> QFrame:
         panel = QFrame()
         layout = QHBoxLayout(panel)
+        layout.setAlignment(Qt.AlignmentFlag.AlignVCenter)
+        layout.setContentsMargins(0, 0, 0, 0)
+        layout.setSpacing(8)
 
-        layout.addWidget(QLabel("🔍 Buscar:"))
         self.inp_buscar = QLineEdit()
-        self.inp_buscar.setPlaceholderText("Código o descripción...")
+        self.inp_buscar.setPlaceholderText("🔍 Buscar código o descripción...")
         self.inp_buscar.textChanged.connect(self._filtrar_tabla)
         layout.addWidget(self.inp_buscar, 1)
 
         layout.addWidget(QLabel("Categoría:"))
         self.cmb_categoria = QComboBox()
         self.cmb_categoria.addItem("Todos", None)
-        self.cmb_categoria.addItem("Mueble", "Mueble")
-        self.cmb_categoria.addItem("Inmueble", "Inmueble")
-        self.cmb_categoria.addItem("Electrónico", "Electrónico")
+        self.cmb_categoria.addItem("Audio", "Audio")
+        self.cmb_categoria.addItem("Vestuario", "Vestuario")
+        self.cmb_categoria.addItem("Instrumento musicales", "Instrumento musicales")
+        self.cmb_categoria.addItem("Implementos de danza", "Implementos de danza")
+        self.cmb_categoria.addItem("Iluminación","Iluminación")
         self.cmb_categoria.currentIndexChanged.connect(self._filtrar_tabla)
         layout.addWidget(self.cmb_categoria)
 
@@ -100,23 +106,48 @@ class ListaBienesWidget(QWidget):
         self.cmb_estado.currentIndexChanged.connect(self._filtrar_tabla)
         layout.addWidget(self.cmb_estado)
 
+        self.btn_agregar = QPushButton("+ Nuevo Bien")
+        self.btn_agregar.setMinimumHeight(34)
+        self.btn_agregar.clicked.connect(self._abrir_agregar)
+        layout.addWidget(self.btn_agregar)
+        layout.addSpacing(8)
+
+        self.btn_actualizar = QPushButton("🔄 Actualizar")
+        self.btn_actualizar.setMinimumHeight(34)
+        self.btn_actualizar.clicked.connect(self._cargar_datos)
+        layout.addWidget(self.btn_actualizar)
+        layout.addSpacing(8)
+
         return panel
-
+    
     def _cargar_datos(self) -> None:
-        resultado = self.bienes_service.listar()
+        """Carga la lista de bienes."""
 
-        if not resultado.ok:
-            QMessageBox.warning(self, "Error", resultado.mensaje)
-            return
+        try:
+            resultado = self.bienes_service.listar()
 
-        self.bienes_filtrados = resultado.lista or []
-        self._mostrar_bienes()
+            if not resultado.ok:
+                QMessageBox.warning(
+                    self,
+                    "Error al cargar información",
+                    resultado.mensaje
+                )
+                return
+
+            self.bienes_filtrados = resultado.lista or []
+            self._mostrar_bienes()
+
+        except Exception:
+            QMessageBox.critical(
+                self,
+                "Error inesperado",
+                "No fue posible cargar los bienes patrimoniales.\n"
+                "Intente nuevamente o comuníquese con el administrador."
+            )
 
     def _mostrar_bienes(self) -> None:
         self.tabla_bienes.setRowCount(len(self.bienes_filtrados))
         self.tabla_bienes.verticalHeader().setDefaultSectionSize(32)
-        self.tabla_bienes.verticalHeader().setVisible(False)
-        self.tabla_bienes.setWordWrap(False)
 
         for fila, bien in enumerate(self.bienes_filtrados):
 
@@ -195,20 +226,40 @@ class ListaBienesWidget(QWidget):
             self.tabla_bienes.setRowHeight(fila, 48)
 
     def _filtrar_tabla(self) -> None:
-        buscar = self.inp_buscar.text().lower()
-        categoria = self.cmb_categoria.currentData()
-        estado = self.cmb_estado.currentData()
+        """Filtra los bienes."""
+        try:
+            buscar = self.inp_buscar.text().strip()
+            categoria = self.cmb_categoria.currentData()
+            estado = self.cmb_estado.currentData()
+            resultado = self.bienes_service.listar(
+                filtro={
+                    "codigo": buscar or None,
+                    "descripcion": buscar or None,
+                    "categoria": categoria,
+                    "estado": estado
+                }
+            )
 
-        resultado = self.bienes_service.listar(filtro={
-            "codigo": buscar or None,
-            "descripcion": buscar or None,
-            "categoria": categoria,
-            "estado": estado
-        })
+            if resultado.ok:
+                self.bienes_filtrados = resultado.lista or []
+                self._mostrar_bienes()
+            else:
+                QMessageBox.warning(
+                    self,
+                    "Búsqueda",
+                    resultado.mensaje
+                )
 
-        if resultado.ok:
-            self.bienes_filtrados = resultado.lista or []
-            self._mostrar_bienes()
+        except Exception:
+            QMessageBox.critical(
+                self,
+                "Error",
+                "Ocurrió un problema al realizar la búsqueda."
+            )
+
+            if resultado.ok:
+                self.bienes_filtrados = resultado.lista or []
+                self._mostrar_bienes()
 
     def _abrir_agregar(self) -> None:
         dlg = FormularioBienDialog(sesion=self.sesion,parent=self)
@@ -224,21 +275,22 @@ class ListaBienesWidget(QWidget):
         respuesta = QMessageBox.question(
             self,
             "Confirmar",
-            f"¿Dar de baja el bien {bien['codigo_patrimonial']}?"
-        )
+            f"¿Desea dar de baja el bien\n\n{bien['codigo_patrimonial']}?",
+            QMessageBox.StandardButton.Yes |
+            QMessageBox.StandardButton.No)
 
         if respuesta != QMessageBox.StandardButton.Yes:
             return
 
-        resultado = self.bienes_service.cambiar_estado(
-            bien["id"],
-            "DeBaja",
-            self.sesion.usuario_id
-        )
+        try:
+            resultado = self.bienes_service.cambiar_estado(bien["id"],"DeBaja",self.sesion.usuario_id)
 
-        if resultado.ok:
-            QMessageBox.information(self, "Éxito", "Bien dado de baja")
-            self._cargar_datos()
-        else:
-            QMessageBox.critical(self, "Error", resultado.mensaje)
+            if resultado.ok:
+                QMessageBox.information(self,"Operación realizada",resultado.mensaje)
+                self._cargar_datos()
+            else:
+                QMessageBox.warning(self,"No se pudo completar la operación",resultado.mensaje)
+
+        except Exception:
+            QMessageBox.critical(self,"Error inesperado","No fue posible dar de baja el bien.")
 

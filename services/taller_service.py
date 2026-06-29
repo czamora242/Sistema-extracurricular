@@ -605,11 +605,64 @@ class TallerService:
                         "nombre": t.nombre,
                         "docente": t.docente.nombre_completo if t.docente else "N/A",
                         "ciclo": t.ciclo_academico.nombre if t.ciclo_academico else "N/A",
+                        "cupo_maximo": t.cupo_maximo,
+                        "total_inscritos": t.total_inscritos,
                         "umbral": t.umbral_asistencia,
-                        "inscritos": t.total_inscritos,
+                        "total_sesiones": t.total_sesiones,
+                        "sesiones_realizadas": t.sesiones_realizadas,
+                        "estado": t.estado,
                     }
                     for t in talleres
                 ]
+
         
+        except SQLAlchemyError:
+            return []
+            
+    @staticmethod
+    def listar_por_rol(usuario_id: int, rol_nombre: str,
+                    texto: str = "", ciclo_id: int = None,
+                    estado: str = None) -> list[dict]:
+        """
+        Devuelve talleres filtrados según el rol:
+        - Administrador: todos
+        - Docente: solo los suyos
+        """
+        try:
+            with get_session() as session:
+                q = session.query(Taller).join(CicloAcademico).join(Docente)
+
+                if texto and texto.strip():
+                    t = f"%{texto.strip()}%"
+                    q = q.filter(or_(
+                        Taller.nombre.ilike(t),
+                        Taller.codigo.ilike(t),
+                    ))
+                if ciclo_id:
+                    q = q.filter(Taller.ciclo_academico_id == ciclo_id)
+                if estado:
+                    q = q.filter(Taller.estado == estado)
+
+                if rol_nombre == "Docente":
+                    usuario = session.get(Usuario, usuario_id)
+                    if not usuario or not usuario.docente:
+                        return []
+                    q = q.filter(Taller.docente_id == usuario.docente.id)
+
+                talleres = q.order_by(Taller.nombre).all()
+                return [
+                    {
+                        "id": t.id,
+                        "codigo": t.codigo,
+                        "nombre": t.nombre,
+                        "docente": t.docente.nombre_completo,
+                        "ciclo": t.ciclo_academico.nombre,
+                        "estado": t.estado,
+                        "umbral": t.umbral_asistencia,
+                        "total_inscritos": t.total_inscritos,
+                        "total_sesiones": t.total_sesiones,
+                    }
+                    for t in talleres
+                ]
         except SQLAlchemyError:
             return []

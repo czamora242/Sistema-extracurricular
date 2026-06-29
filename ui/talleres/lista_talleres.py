@@ -210,19 +210,34 @@ class ListaTalleresWidget(QWidget):
         self.cmb_ciclo.blockSignals(False)
 
         self.cmb_docente.blockSignals(True)
-        self.cmb_docente.addItem("Todos los docentes", None)
-        for d in TallerService.listar_docentes():
-            self.cmb_docente.addItem(d["nombre"], d["id"])
+        if self.sesion.rol_nombre == "Docente":
+            # Solo mostrar su propio nombre y bloquear el combo
+            self.cmb_docente.addItem(self.sesion.nombre_completo, self.sesion.usuario_id)
+            self.cmb_docente.setEnabled(False)
+        else:
+            self.cmb_docente.addItem("Todos los docentes", None)
+            for d in TallerService.listar_docentes():
+                self.cmb_docente.addItem(d["nombre"], d["id"])
         self.cmb_docente.blockSignals(False)
 
     def _ejecutar_busqueda(self):
-        self._datos = TallerService.buscar(
-            texto      = self.inp_buscar.text(),
-            ciclo_id   = self.cmb_ciclo.currentData(),
-            docente_id = self.cmb_docente.currentData(),
-            estado     = self.cmb_estado.currentData(),
-        )
+        if self.sesion.rol_nombre == "Docente":
+            # Solo talleres del docente logueado
+            self._datos = TallerService.listar_para_asistencia(
+                usuario_id=self.sesion.usuario_id,
+                rol_nombre=self.sesion.rol_nombre,
+                estado=self.cmb_estado.currentData()
+            )
+        else:
+            # Administrador u otros roles → búsqueda normal
+            self._datos = TallerService.buscar(
+                texto      = self.inp_buscar.text(),
+                ciclo_id   = self.cmb_ciclo.currentData(),
+                docente_id = self.cmb_docente.currentData(),
+                estado     = self.cmb_estado.currentData(),
+            )
         self._poblar_tabla(self._datos)
+
 
     def _poblar_tabla(self, datos: list[dict]):
         self.tbl_talleres.setSortingEnabled(False)

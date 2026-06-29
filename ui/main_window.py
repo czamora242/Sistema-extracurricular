@@ -35,7 +35,7 @@ MODULOS = [
     ("Asistencia",      "📋", ["Administrador", "Docente"],RegistroAsistenciaDialog),  # Sprint 4
     ("Lista de Aptos",  "✅", ["Administrador"],                   ListaAptosWidget),  # Sprint 5
     ("Bienes",          "📦", ["Administrador", "Operador"],      ListaBienesWidget),  # Sprint 6
-    ("Reportes",        "📊", ["Administrador"],               ReporteAsistenciaDialog),  # Sprint 7
+    ("Reportes",        "📊", ["Administrador"],               ReportesPrincipalDialog),  # Sprint 7
     ("Usuarios",        "👥", ["Administrador"],                PanelGestionarUsuarios),  # Sprint 1 (extra)
 ]
 
@@ -60,7 +60,7 @@ class MainWindow(QMainWindow):
     def _configurar_ventana(self) -> None:
         self.setWindowTitle(f"Sistema de Talleres UNAB — {self.sesion.nombre_completo}")
         self.setMinimumSize(1024, 680)
-        self.resize(1280, 760)
+        self.resize(1200, 760)
         # Centrar en pantalla
         pantalla = QApplication.primaryScreen().geometry()
         x = (pantalla.width()  - self.width())  // 2
@@ -87,6 +87,10 @@ class MainWindow(QMainWindow):
                 font-size: 11px;
                 padding: 0 16px;
             }
+            QMenuBar::item {
+                    padding: 4px 16px;
+                    min-width: 350px;
+                }
             QPushButton#btn_modulo {
                 text-align: left;
                 padding: 11px 20px;
@@ -135,7 +139,7 @@ class MainWindow(QMainWindow):
         # ── Menú: Archivo ────────────────────────────────────────
         menu_archivo = barra.addMenu("Archivo")
 
-        act_cerrar_sesion = QAction("🔒  Cerrar sesión", self)
+        act_cerrar_sesion = QAction("🔒 Cerrar sesión", self)
         act_cerrar_sesion.setShortcut("Ctrl+L")
         act_cerrar_sesion.triggered.connect(self._cerrar_sesion)
 
@@ -150,19 +154,18 @@ class MainWindow(QMainWindow):
         # ── Menú: Mi cuenta ──────────────────────────────────────
         menu_cuenta = barra.addMenu("Mi cuenta")
 
-        act_cambiar_pass = QAction("🔑  Cambiar contraseña", self)
+        act_cambiar_pass = QAction("🔑 Cambiar contraseña", self)
         act_cambiar_pass.triggered.connect(self._abrir_cambio_password)
         menu_cuenta.addAction(act_cambiar_pass)
 
         # ── Menú: Apariencia ─────────────────────────────────────
         menu_apariencia = barra.addMenu("Apariencia")
 
-        self.act_tema = QAction("🌙 Cambiar tema", self)
-        self.act_tema.setShortcut("Ctrl+Shift+T")
-        self.act_tema.triggered.connect(self._toggle_tema)
-        # Actualizar el texto del menú según el tema actual
+        act_tema = QAction("🌙 Cambiar tema", self)
+        act_tema.triggered.connect(self._toggle_tema)
         self._actualizar_texto_tema()
-        menu_apariencia.addAction(self.act_tema)
+
+        menu_apariencia.addAction(act_tema)
 
     # ══════════════════════════════════════════════════════════════
     # UI CENTRAL (sidebar + área de contenido)

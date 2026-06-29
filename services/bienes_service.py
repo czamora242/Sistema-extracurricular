@@ -16,6 +16,7 @@ from datetime import datetime,date
 from typing import Optional, List, Dict, Any
 
 from sqlalchemy import and_, func
+from sqlalchemy.exc import SQLAlchemyError, IntegrityError
 from database.connection import get_session
 from models import BienPatrimonial, AsignacionBien, Auditoria
 
@@ -47,6 +48,20 @@ class BienesService:
             "observaciones": "En buen estado"
           }
         """
+
+        if datos["valor_adquisicion"] <= 0:
+            return ResultadoBien(
+                ok=False,
+                mensaje="El valor de adquisición debe ser mayor que cero."
+            )
+        
+        if datos["fecha_adquisicion"] > date.today():
+
+            return ResultadoBien(
+                ok=False,
+                mensaje="La fecha de adquisición no puede ser posterior a la fecha actual."
+            )
+
         obligatorios = ["codigo_patrimonial", "descripcion"]
         for campo in obligatorios:
             if not datos.get(campo):
@@ -102,15 +117,28 @@ class BienesService:
                     datos={"bien_id": bien.id}
                 )
 
-        except SQLAlchemyError as e:
+        except IntegrityError:
             return ResultadoBien(
                 ok=False,
-                mensaje=f"Error de base de datos: {str(e)}"
+                mensaje="Ya existe un bien con ese código patrimonial."
             )
-        except Exception as e:
+
+        except ValueError:
             return ResultadoBien(
                 ok=False,
-                mensaje=f"Error: {str(e)}"
+                mensaje="El valor de adquisición ingresado es inválido."
+            )
+
+        except SQLAlchemyError:
+            return ResultadoBien(
+                ok=False,
+                mensaje="No fue posible guardar la información en la base de datos."
+            )
+
+        except Exception:
+            return ResultadoBien(
+                ok=False,
+                mensaje="Ocurrió un error inesperado. Intente nuevamente."
             )
 
     @staticmethod

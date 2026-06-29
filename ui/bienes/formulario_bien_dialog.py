@@ -71,7 +71,7 @@ class FormularioBienDialog(QDialog):
         # ── Categoría (ANTES tipo → corregido)
         layout.addWidget(QLabel("Categoría"))
         self.cmb_categoria = QComboBox()
-        self.cmb_categoria.addItems(["Mueble", "Inmueble", "Electrónico"])
+        self.cmb_categoria.addItems(["Audio","Vestuario", "Instrumento musicales", "Implementos de danza","Iluminación"])
         layout.addWidget(self.cmb_categoria)
 
         # ── Valor
