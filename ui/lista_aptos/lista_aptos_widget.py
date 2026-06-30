@@ -139,6 +139,7 @@ class ListaAptosWidget(QWidget):
 
         self.cmb_taller.blockSignals(True)
         self.cmb_taller.clear()
+        self.cmb_taller.addItem("Selecciona un taller...", None)
 
         if not talleres:
             self.cmb_taller.addItem("No hay talleres activos", None)
@@ -179,6 +180,8 @@ class ListaAptosWidget(QWidget):
 
     def _on_generar_lista(self) -> None:
         """Genera la lista de aptos."""
+
+        
         if not self.taller_seleccionado:
             QMessageBox.warning(self, "Error", "Selecciona un taller primero")
             return

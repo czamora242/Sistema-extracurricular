@@ -1,19 +1,9 @@
-"""
-models/taller.py   ──   EP-03 Gestión de Talleres
-Mapea las tablas `talleres`, `sesiones` e `inscripciones`.
-
-Estas tres tablas son el corazón del sistema:
-  Taller → tiene muchas Sesiones
-  Taller → tiene muchas Inscripciones (estudiantes inscritos)
-  Inscripcion → tiene muchos registros de Asistencia
-"""
 
 from datetime import date, datetime, time
-
 from sqlalchemy import (Date, DateTime, Enum, ForeignKey, Integer,
                         SmallInteger, String, Text, Time, UniqueConstraint)
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from database.base import Base
 
 

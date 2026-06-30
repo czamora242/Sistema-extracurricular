@@ -189,7 +189,7 @@ class ReporteEstudianteDialog(QDialog):
         # Ciclos
         ciclos = self.reporte_service.listar_ciclos()
         for ciclo in ciclos:
-            self.cmb_ciclo.addItem(ciclo["nombre"], ciclo["id"])
+            self.cmb_ciclo.addItem(ciclo["nombre"])
         
         # Carreras
         carreras = self.reporte_service.listar_carreras()

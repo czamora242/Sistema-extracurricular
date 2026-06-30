@@ -1,34 +1,3 @@
-"""
-ui/talleres/inscripciones_dialog.py   ──   Sprint 3 / HU-08
-═══════════════════════════════════════════════════════════
-
-Diálogo de gestión de inscripciones de estudiantes en un taller.
-
-LAYOUT:
-  ┌──────────────────────────────────────────────────────┐
-  │  Inscritos — Danzas Folklóricas       [✕ Cerrar]    │
-  │──────────────────────────────────────────────────────│
-  │  Cupo: 28/30 inscritos  |  Pestaña: [Activos] [Ret]  │
-  │──────────────────────────────────────────────────────│
-  │  Nombre  │ DNI      │ Código  │ Carrera │ Ciclo │ Est │
-  │──────────────────────────────────────────────────────│
-  │  María… │ 12345678 │ EST-001 │ Ing.… │ 3    │ Act │
-  │──────────────────────────────────────────────────────│
-  │  [+ Inscribir] [Retirar] [Reactivar]                 │
-  └──────────────────────────────────────────────────────┘
-
-NOMBRES DE PROPIEDADES (objectName):
-  tab_inscripciones   QTabWidget      [Activos | Retirados]
-  tbl_activos         QTableWidget    estudiantes activos
-  tbl_retirados       QTableWidget    estudiantes retirados
-  btn_inscribir       QPushButton     abre diálogo de búsqueda
-  btn_retirar         QPushButton     retira estudiante seleccionado
-  btn_reactivar       QPushButton     reactiva inscripción retirada
-  lbl_cupo            QLabel          "Cupo: N/M inscritos"
-  lbl_titulo          QLabel
-  btn_cerrar          QPushButton
-"""
-
 from PySide6.QtWidgets import (
     QDialog, QVBoxLayout, QHBoxLayout,
     QLabel, QPushButton, QTableWidget, QTableWidgetItem,

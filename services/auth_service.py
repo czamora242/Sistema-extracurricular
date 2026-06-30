@@ -307,6 +307,71 @@ class AuthService:
         except SQLAlchemyError as e:
             return ResultadoAuth(ok=False, mensaje=f"Error al actualizar contraseña: {e}")
 
+    # ── RESTABLECER CONTRASEÑA (ADMINISTRADOR) ───────────────────
+    @staticmethod
+    def restablecer_password_admin(sesion_activa: SesionUsuario,usuario_id: int,password_nuevo: str,password_confirmacion: str) -> ResultadoAuth:
+
+        if not sesion_activa.es_administrador:
+            return ResultadoAuth(
+                ok=False,
+                mensaje="No tienes permisos para realizar esta operación."
+            )
+
+        if not password_nuevo:
+            return ResultadoAuth(
+                ok=False,
+                mensaje="La nueva contraseña es obligatoria."
+            )
+
+        if len(password_nuevo) < 8:
+            return ResultadoAuth(
+                ok=False,
+                mensaje="La contraseña debe tener al menos 8 caracteres."
+            )
+
+        if password_nuevo != password_confirmacion:
+            return ResultadoAuth(
+                ok=False,
+                mensaje="Las contraseñas no coinciden."
+            )
+
+        try:
+            with get_session() as session:
+
+                usuario = session.get(Usuario, usuario_id)
+
+                if usuario is None:
+                    return ResultadoAuth(
+                        ok=False,
+                        mensaje="El usuario no existe."
+                    )
+
+                usuario.set_password(password_nuevo)
+                usuario.updated_at = datetime.now()
+
+                AuthService._auditar(
+                    session,
+                    usuario_id=sesion_activa.usuario_id,
+                    tabla="usuarios",
+                    accion="UPDATE",
+                    registro_id=usuario.id,
+                    datos_nuevos={
+                        "accion": "restablecer_password",
+                        "usuario_afectado": usuario.username
+                    }
+                )
+
+                return ResultadoAuth(
+                    ok=True,
+                    mensaje=f"La contraseña de '{usuario.username}' fue actualizada correctamente."
+                )
+
+        except SQLAlchemyError as e:
+            return ResultadoAuth(
+                ok=False,
+                mensaje=f"Error al actualizar la contraseña: {e}"
+            )
+
     # ── VERIFICAR SESIÓN ACTIVA ──────────────────────────────────
     @staticmethod
     def verificar_sesion(sesion: Optional[SesionUsuario]) -> bool:

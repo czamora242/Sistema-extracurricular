@@ -35,7 +35,7 @@ from PySide6.QtWidgets import (
     QWidget, QVBoxLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QComboBox,
     QTableWidget, QTableWidgetItem, QHeaderView,
-    QAbstractItemView, QFrame, QMenu, QMessageBox,
+    QAbstractItemView, QFrame, QMenu, QMessageBox,QFileDialog
 )
 from PySide6.QtCore import Qt, QTimer
 from PySide6.QtGui  import QColor, QFont
@@ -199,6 +199,16 @@ class ListaTalleresWidget(QWidget):
 
         self.tbl_talleres.itemSelectionChanged.connect(
             self._on_seleccion_cambio)
+        
+        btn_exportar_celulares = QPushButton("📱 Exportar celulares")
+        btn_exportar_celulares.setObjectName("btn_exportar_celulares")
+        btn_exportar_celulares.setFixedHeight(34)
+        btn_exportar_celulares.setEnabled(False)
+        btn_exportar_celulares.clicked.connect(self._exportar_celulares)
+        self.btn_exportar_celulares = btn_exportar_celulares
+        lay.addWidget(btn_exportar_celulares)
+        lay.addSpacing(4)
+
         return lay
 
     # ──────────────────────────────────────────────────────────────
@@ -296,6 +306,8 @@ class ListaTalleresWidget(QWidget):
         self.btn_sesiones.setEnabled(hay)
         self.btn_inscritos.setEnabled(hay)
         self.btn_estado.setEnabled(hay and es_admin)
+        self.btn_exportar_celulares.setEnabled(hay)
+
 
     def _taller_id_seleccionado(self) -> int | None:
         fila = self.tbl_talleres.currentRow()
@@ -385,6 +397,43 @@ class ListaTalleresWidget(QWidget):
         menu.addSeparator()
         menu.addAction("Cambiar estado", self._cambiar_estado)
         menu.exec(self.tbl_talleres.mapToGlobal(pos))
+
+    def _exportar_celulares(self):
+        tid = self._taller_id_seleccionado()
+        if not tid:
+            return
+
+        # Obtener inscritos desde el service
+        inscritos = TallerService.listar_inscritos(tid)
+        if not inscritos:
+            QMessageBox.information(self, "Sin datos", "No hay inscritos en este taller.")
+            return
+
+        # Extraer teléfonos
+        telefonos = [i["telefono"] for i in inscritos if i.get("telefono")]
+
+        if not telefonos:
+            QMessageBox.information(self, "Sin teléfonos", "Ningún inscrito tiene número registrado.")
+            return
+
+        # Guardar archivo
+        archivo, _ = QFileDialog.getSaveFileName(
+            self,
+            "Guardar lista de celulares",
+            f"Celulares_Taller_{tid}.txt",
+            "Texto (*.txt);;CSV (*.csv)"
+        )
+        if not archivo:
+            return
+
+        try:
+            with open(archivo, "w", encoding="utf-8") as f:
+                for tel in telefonos:
+                    f.write(f"{tel}\n")
+            QMessageBox.information(self, "Éxito", f"Celulares exportados a:\n{archivo}")
+        except Exception as e:
+            QMessageBox.critical(self, "Error", f"No se pudo exportar: {str(e)}")
+
 
     def refrescar(self):
         self._ejecutar_busqueda()

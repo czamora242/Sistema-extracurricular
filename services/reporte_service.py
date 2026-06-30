@@ -1,15 +1,3 @@
-"""
-services/reporte_service.py   ──   Reportes Mejorados
-═══════════════════════════════════════════════════════════════════
-
-Servicio con:
-  ✅ Filtros por ciclo, nombre, carrera, taller
-  ✅ Contabilización CORRECTA de asistencias (P, J)
-  ✅ Reportes de estudiante y taller
-  ✅ Soporte para múltiples sesiones
-  ✅ Exportación de datos
-"""
-
 from dataclasses import dataclass
 from datetime import datetime
 from typing import Optional, List, Dict, Any
@@ -42,30 +30,16 @@ class ReporteService:
 
     @staticmethod
     def listar_estudiantes_filtrados(
-        ciclo_id: int = None,
-        nombre: str = None,
-        carrera_id: int = None,
-        taller_id: int = None
-    ) -> ResultadoReporte:
-        """
-        Lista estudiantes con filtros aplicables.
-        
-        PARÁMETROS:
-            ciclo_id: Filtrar por ciclo académico
-            nombre: Búsqueda por nombre/apellido
-            carrera_id: Filtrar por carrera
-            taller_id: Filtrar por inscripción en taller
-        
-        RETORNA:
-            Lista de estudiantes que coinciden
-        """
+        ciclo_id: int = None,nombre: str = None,
+        carrera_id: int = None,taller_id: int = None) -> ResultadoReporte:
+
         try:
             with get_session() as session:
-                query = session.query(Estudiante).filter(Estudiante.activo == True)
+                query = session.query(Estudiante).filter(Estudiante.estado == "Activo")
                 
                 # Filtro por ciclo
                 if ciclo_id:
-                    query = query.filter(Estudiante.ciclo_academico_id == ciclo_id)
+                    query = query.filter(Estudiante.ciclo_actual == ciclo_id)
                 
                 # Filtro por nombre/apellido
                 if nombre:
@@ -85,15 +59,9 @@ class ReporteService:
                 # Filtro por taller (inscripción)
                 if taller_id:
                     query = query.join(Inscripcion).filter(
-                        and_(
-                            Inscripcion.taller_id == taller_id,
-                            Inscripcion.estado == "Activo"
-                        )
-                    ).distinct()
+                        and_(Inscripcion.taller_id == taller_id,Inscripcion.estado == "Activo")).distinct()
                 
-                estudiantes = query.order_by(
-                    Estudiante.apellidos, Estudiante.nombres
-                ).all()
+                estudiantes = query.order_by(Estudiante.apellidos, Estudiante.nombres).all()
                 
                 lista = [
                     {
@@ -102,7 +70,7 @@ class ReporteService:
                         "nombre": e.nombre_completo,
                         "email": e.email,
                         "carrera": e.carrera.nombre if e.carrera else "N/A",
-                        "ciclo": e.ciclo_academico.nombre if e.ciclo_academico else "N/A"
+                        "ciclo": e.ciclo_actual 
                     }
                     for e in estudiantes
                 ]
@@ -172,21 +140,12 @@ class ReporteService:
 
     @staticmethod
     def obtener_reporte_estudiante(estudiante_id: int) -> ResultadoReporte:
-        """
-        ✅ REPORTE DE ESTUDIANTE CON CONTABILIZACIÓN CORRECTA
-        
-        Calcula correctamente:
-          - Presencias: estado == "P"
-          - Justificados: estado == "J"
-          - Ausencias: estado == "A"
-          - Porcentaje: (P + J) / Total
-        """
         try:
             with get_session() as session:
                 estudiante = session.query(Estudiante).filter(
                     and_(
                         Estudiante.id == estudiante_id,
-                        Estudiante.activo == True
+                        Estudiante.estado == "Activo"
                     )
                 ).first()
                 if not estudiante:
@@ -280,7 +239,7 @@ class ReporteService:
                         "nombre": estudiante.nombre_completo,
                         "email": estudiante.email,
                         "carrera": estudiante.carrera.nombre if estudiante.carrera else "N/A",
-                        "ciclo": estudiante.ciclo_academico.nombre if estudiante.ciclo_academico else "N/A"
+                        "ciclo": estudiante.ciclo_actual 
                     },
                     "talleres": talleres_list,
                     "estadisticas_generales": {
@@ -290,12 +249,9 @@ class ReporteService:
                     }
                 }
 
-                return ResultadoReporte(
-                    ok=True,
-                    mensaje="Reporte de estudiante generado correctamente",
-                    datos=datos,
-                    lista=talleres_list
-                )
+                return ResultadoReporte(ok=True,
+                    mensaje="Reporte de estudiante generado correctamente",datos=datos,
+                    lista=talleres_list)
 
         except Exception as e:
             return ResultadoReporte(
@@ -308,20 +264,7 @@ class ReporteService:
     # ══════════════════════════════════════════════════════════════════════════
 
     @staticmethod
-    def obtener_reporte_taller(
-        taller_id: int,
-        sesion_ids: List[int] = None
-    ) -> ResultadoReporte:
-        """
-        Reporte completo de un taller con sesiones específicas.
-        
-        PARÁMETROS:
-            taller_id: ID del taller
-            sesion_ids: Lista de IDs de sesiones (None = todas)
-        
-        RETORNA:
-            Datos de asistencia por estudiante en las sesiones
-        """
+    def obtener_reporte_taller(taller_id: int,sesion_ids: List[int] = None) -> ResultadoReporte:
         try:
             with get_session() as session:
                 taller = session.query(Taller).filter_by(id=taller_id).first()
@@ -405,6 +348,7 @@ class ReporteService:
                         "codigo": estudiante.codigo_estudiantil,
                         "nombre": estudiante.nombre_completo,
                         "carrera": estudiante.carrera.nombre if estudiante.carrera else "N/A",
+                        "ciclo": estudiante.ciclo_actual,
                         "presentes": presentes,
                         "justificados": justificados,
                         "ausentes": ausentes,
@@ -428,7 +372,7 @@ class ReporteService:
                         "codigo": taller.codigo,
                         "nombre": taller.nombre,
                         "docente": taller.docente.nombre_completo if taller.docente else "N/A",
-                        "ciclo": taller.ciclo_academico.nombre if taller.ciclo_academico else "N/A"
+                        "periodo_academico": taller.ciclo_academico.nombre if taller.ciclo_academico else "N/A"
                     },
                     "sesiones": sesiones_info,
                     "estudiantes": estudiantes_list,
@@ -463,26 +407,6 @@ class ReporteService:
 
     @staticmethod
     def obtener_datos_dashboard() -> ResultadoReporte:
-        """
-        Obtiene datos para el dashboard principal.
-
-        RETORNA:
-          {
-            "resumen": {
-              "total_talleres": 5,
-              "total_estudiantes": 150,
-              "sesiones_hoy": 2,
-              "proxima_sesion": {...},
-              "estudiantes_en_riesgo": 12
-            },
-            "estadisticas": {
-              "asistencia_promedio": 82.5,
-              "distribucion_calificaciones": [...],
-              "estudiantes_por_estado": {...}
-            },
-            "proximas_sesiones": [...]
-          }
-        """
         try:
             with get_session() as session:
                 # Contar talleres activos

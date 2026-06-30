@@ -35,7 +35,7 @@ from PySide6.QtWidgets import (
 from services.usuario_service import UsuarioService
 from services.auth_service import SesionUsuario
 from ui.usuarios.dialogo_crear_usuario import DialogoCrearUsuario
-
+from ui.usuarios.dialog_editar_usuario import DialogEditarUsuario
 
 class PanelGestionarUsuarios(QWidget):
     """
@@ -299,18 +299,18 @@ class PanelGestionarUsuarios(QWidget):
                 "✓ Usuario creado correctamente."
             )
 
-    def _editar_usuario(self) -> None:
-        """Abre dialog para editar usuario seleccionado."""
+    def _editar_usuario(self):
         if not self.usuario_seleccionado:
+            QMessageBox.warning(
+                self,
+                "Editar usuario",
+                "Seleccione un usuario."
+            )
             return
 
-        # Por ahora, mostrar mensaje
-        QMessageBox.information(
-            self,
-            "Editar Usuario",
-            f"Función de edición en desarrollo.\n\n"
-            f"Usuario: {self.usuario_seleccionado['username']}"
-        )
+        dialog = DialogEditarUsuario(usuario_id=self.usuario_seleccionado["id"],sesion_usuario=self.sesion_usuario,parent=self)
+        if dialog.exec():
+            self._cargar_usuarios()
 
     def _desbloquear_usuario(self) -> None:
         """Desbloquea el usuario seleccionado."""
@@ -413,22 +413,3 @@ class PanelGestionarUsuarios(QWidget):
             QMessageBox.warning(self, "Error", res.mensaje)
 
 
-# ══════════════════════════════════════════════════════════════════
-# EJEMPLO DE USO EN MAIN_WINDOW
-# ══════════════════════════════════════════════════════════════════
-
-"""
-En tu main_window.py:
-
-    def abrir_gestionar_usuarios(self):
-        \"\"\"Abre el panel de gestión de usuarios.\"\"\"
-        panel = PanelGestionarUsuarios(
-            sesion_usuario=self.sesion,
-            parent=self
-        )
-        self.setCentralWidget(panel)
-
-    # En el menú:
-    menu_gestion = menubar.addMenu("Gestión")
-    menu_gestion.addAction("Usuarios", self.abrir_gestionar_usuarios)
-"""

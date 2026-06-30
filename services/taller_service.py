@@ -1,25 +1,3 @@
-"""
-services/taller_service.py   ──   EP-03 Gestión de Talleres
-═══════════════════════════════════════════════════════════
-
-Lógica de negocio del módulo Talleres.
-La UI Qt llama estas funciones — nunca toca la BD directa.
-
-FUNCIONES:
-  registrar()           → crea un taller nuevo (HU-06)
-  editar()              → actualiza datos con auditoría
-  cambiar_estado()      → Activo / Suspendido / Finalizado
-  buscar()              → filtros combinados para la tabla
-  obtener_por_id()      → datos completos para el formulario
-  generar_sesiones()    → crea sesiones automáticamente (HU-07)
-  inscribir()           → inscribe un estudiante (HU-08)
-  retirar()             → retira un estudiante sin borrar historial
-  listar_inscritos()    → lista para el diálogo de inscripciones
-  listar_ciclos()       → para QComboBox de ciclos
-  listar_docentes()     → para QComboBox de docentes
-  contar_por_estado()   → estadísticas para el dashboard
-"""
-
 from datetime import date, datetime, timedelta
 from typing   import Optional
 
@@ -501,11 +479,12 @@ class TallerService:
                         "codigo":          i.estudiante.codigo_estudiantil,
                         "carrera":         i.estudiante.carrera.nombre,
                         "ciclo":           i.estudiante.ciclo_actual,
+                        "telefono":        i.estudiante.telefono,
                         "estado":          i.estado,
                         "fecha":           str(i.fecha_inscripcion),
                     }
                     for i in q.order_by(
-                        Estudiante.apellidos, Estudiante.nombres
+                        Estudiante.apellidos, Estudiante.nombres,
                     ).all()
                 ]
         except SQLAlchemyError:

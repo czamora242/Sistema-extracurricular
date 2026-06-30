@@ -55,7 +55,7 @@ class ListaBienesWidget(QWidget):
 
         # ── FILTROS ───────────────────────────────────────────────
         layout.addWidget(self._crear_panel_filtros())
-        layout.addSpacing(30)
+        layout.addSpacing(24)
 
         # ── TABLA ────────────────────────────────────────────────
         self.tabla_bienes = QTableWidget()

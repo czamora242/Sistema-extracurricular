@@ -35,9 +35,6 @@ class ReportesPrincipalDialog(QWidget):
         self._construir_ui()
     
     def _configurar_ventana(self) -> None:
-        """Configura la ventana del dialog."""
-
-        
         self.setStyleSheet("""
             QLabel#titulo {
                 font-size: 20px;
